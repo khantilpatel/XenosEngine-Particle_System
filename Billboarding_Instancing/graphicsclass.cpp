@@ -184,7 +184,7 @@ bool GraphicsClass::UpdateFrame(float frameTime)
 		// Run the frame processing for the particle system.
 	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
 
-	// Render the graphics scene.
+	// Redsfnder the graphics scene.
 	result = Render();
 	if(!result)
 	{
