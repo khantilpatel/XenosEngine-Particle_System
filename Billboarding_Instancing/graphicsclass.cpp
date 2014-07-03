@@ -186,6 +186,7 @@ bool GraphicsClass::UpdateFrame(float frameTime)
 
 	// Redsfnder the graphics scene.
 	result = Render();
+
 	if(!result)
 	{
 		return false;
