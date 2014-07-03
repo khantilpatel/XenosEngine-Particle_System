@@ -161,6 +161,7 @@ bool SystemClass::Frame()
 		// Update the system stats.
 	m_Timer->Frame();
 
+
 	// Check if the user pressed escape and wants to exit the application.
 	if(m_Input->IsKeyDown(VK_ESCAPE))
 	{
