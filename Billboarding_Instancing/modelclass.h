@@ -59,8 +59,11 @@ private:
 private:
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_instanceBuffer;
+	ID3D11Buffer* m_StreamOutBuffer;
+
 	int m_vertexCount;
 	int m_instanceCount;
+
 	TextureClass* m_Texture;
 };
 

@@ -43,6 +43,8 @@
   <ItemGroup>
     <None Include="particle.ps" />
     <None Include="particle.vs" />
+    <None Include="simple.ps" />
+    <None Include="simple.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
   </ItemGroup>

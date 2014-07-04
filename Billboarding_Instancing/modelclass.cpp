@@ -8,6 +8,7 @@ ModelClass::ModelClass()
 {
 	m_vertexBuffer = 0;
 	m_instanceBuffer = 0;
+	m_StreamOutBuffer= 0;
 	m_Texture = 0;
 }
 
@@ -88,10 +89,13 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
 	InstanceType* instances;
-	D3D11_BUFFER_DESC vertexBufferDesc, instanceBufferDesc;
+	D3D11_BUFFER_DESC vertexBufferDesc, instanceBufferDesc, streamOutBufferDesc;
     D3D11_SUBRESOURCE_DATA vertexData, instanceData;
 	HRESULT result;
 
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// Create vertex buffer instance with binding the structure of each vertex to be drawn
+	/////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Set the number of vertices in the vertex array.
 	m_vertexCount = 1;
@@ -136,6 +140,10 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	// Release the vertex array now that the vertex buffer has been created and loaded.
 	delete [] vertices;
 	vertices = 0;
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Create instanced buffer instance with binding the position data for each new instance.
+	/////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Set the number of instances in the array.
 	m_instanceCount = 4;
@@ -177,6 +185,37 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	delete [] instances;
 	instances = 0;
 
+	///////////////////////////////////////////////////////////////
+	// Create Stream-out buffer instance without binding any data
+	///////////////////////////////////////////////////////////////
+
+	int m_nBufferSize = 1000000;
+
+		D3D11_BUFFER_DESC bufferDesc =
+		{
+			m_nBufferSize,
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_STREAM_OUTPUT,
+			0,
+			0,
+			0
+		};
+
+	// Set up the description of the instance buffer.
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = m_nBufferSize;
+    bufferDesc.BindFlags = D3D11_BIND_STREAM_OUTPUT;
+    bufferDesc.CPUAccessFlags = 0;
+    bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer( &bufferDesc, NULL, &m_StreamOutBuffer );
+
+		if(FAILED(result))
+	{
+		return false;
+	}
+	
 	return true;
 }
 
@@ -223,6 +262,8 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
 
+	//Set the Stream-Out buffer for gemometry shader/ vertex shader stage.
+	// The geometry shader will 
     // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 

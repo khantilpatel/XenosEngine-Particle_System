@@ -213,19 +213,9 @@ bool GraphicsClass::Render()
 	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	//m_Model->Render(m_D3D->GetDeviceContext());
 
-		// Turn on alpha blending.
+			// Turn on alpha blending.
 	m_D3D->EnableAlphaBlending();
-
-	// Render the model using the texture shader.
-	/*result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(), worldMatrix, viewMatrix, 
-									 projectionMatrix, m_Model->GetTexture());
-	if(!result)
-	{
-		return false;
-	}*/
 
 		// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
@@ -241,6 +231,20 @@ bool GraphicsClass::Render()
 
 		// Turn off alpha blending.
 	m_D3D->DisableAlphaBlending();
+
+
+		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_Model->Render(m_D3D->GetDeviceContext());
+
+
+
+	// Render the model using the texture shader.
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(), worldMatrix, viewMatrix, 
+									 projectionMatrix, m_Model->GetTexture());
+	if(!result)
+	{
+		return false;
+	}
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();

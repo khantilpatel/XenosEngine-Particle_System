@@ -434,6 +434,8 @@ void ParticleSystemClass::KillParticles()
 				m_particleList[j].active    = m_particleList[j+1].active;
 			}
 		}
+
+
 	}
 
 	return;
