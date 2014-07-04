@@ -10,12 +10,16 @@ GraphicsClass::GraphicsClass()
 	m_Camera = 0;
 	m_Model = 0;
 	m_TextureShader = 0;
+	m_SimpleShader =0;
+
+	m_ParticleShader = 0;
+	m_ParticleSystem = 0;
 }
 
 
 GraphicsClass::GraphicsClass(const GraphicsClass& other)
 {
-		m_ParticleShader = 0;
+	m_ParticleShader = 0;
 	m_ParticleSystem = 0;
 }
 
@@ -85,6 +89,22 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	
+	// Create the texture shader object.
+	m_SimpleShader = new SimpleShaderClass;
+	if(!m_SimpleShader)
+	{
+		return false;
+	}
+
+	// Initialize the texture shader object.
+	result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the simple shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 		// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f, -2.0f, -10.0f);
 
@@ -149,6 +169,14 @@ void GraphicsClass::Shutdown()
 		m_TextureShader->Shutdown();
 		delete m_TextureShader;
 		m_TextureShader = 0;
+	}
+
+	// Release the simple shader object.
+	if(m_SimpleShader)
+	{
+		m_SimpleShader->Shutdown();
+		delete m_SimpleShader;
+		m_SimpleShader = 0;
 	}
 
 	// Release the model object.
@@ -232,15 +260,21 @@ bool GraphicsClass::Render()
 		// Turn off alpha blending.
 	m_D3D->DisableAlphaBlending();
 
+	
 
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_Model->Render(m_D3D->GetDeviceContext());
+	//m_Model->Render(m_D3D->GetDeviceContext());
 
 
 
 	// Render the model using the texture shader.
-	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(), worldMatrix, viewMatrix, 
-									 projectionMatrix, m_Model->GetTexture());
+	result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+		worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
+		m_Model->getStreamOutBuffer(), m_Model->GetTexture());
+
+	m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+		m_Model->getStreamOutBuffer(), m_Model->GetTexture());
+
 	if(!result)
 	{
 		return false;

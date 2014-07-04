@@ -12,6 +12,7 @@
 #include "cameraclass.h"
 #include "modelclass.h"
 #include "textureshaderclass.h"
+#include "simpleshaderclass.h"
 
 #include "particleshaderclass.h"
 #include "particlesystemclass.h"
@@ -47,6 +48,7 @@ private:
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
 	TextureShaderClass* m_TextureShader;
+	SimpleShaderClass* m_SimpleShader;
 
 	ParticleShaderClass* m_ParticleShader;
 	ParticleSystemClass* m_ParticleSystem;

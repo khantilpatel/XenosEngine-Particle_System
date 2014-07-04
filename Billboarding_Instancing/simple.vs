@@ -13,7 +13,7 @@ struct PixelInputType
 };
 
 
-PixelInputType VS(VertexInputType input )
+PixelInputType SimpleVertexShader(VertexInputType input )
 {
 	return input;
 }

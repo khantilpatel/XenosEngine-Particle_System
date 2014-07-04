@@ -23,7 +23,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 class ModelClass
 {
-private:
+
+	
+
+public:
 	struct VertexType
 	{
 		D3DXVECTOR3 position;
@@ -34,24 +37,26 @@ private:
 	{
 		D3DXVECTOR3 position;
 	};
-
-public:
 	ModelClass();
 	ModelClass(const ModelClass&);
 	~ModelClass();
 
 	bool Initialize(ID3D11Device*, WCHAR*);
 	void Shutdown();
-	void Render(ID3D11DeviceContext*);
+
 
 	int GetVertexCount();
 	int GetInstanceCount();
 	ID3D11ShaderResourceView* GetTexture();
+	ID3D11Buffer* getVertexBuffer();
+	ID3D11Buffer* getInstanceBuffer();
+	ID3D11Buffer* getStreamOutBuffer();
+
 	
 private:
 	bool InitializeBuffers(ID3D11Device*);
 	void ShutdownBuffers();
-	void RenderBuffers(ID3D11DeviceContext*);
+
 
 	bool LoadTexture(ID3D11Device*, WCHAR*);
 	void ReleaseTexture();

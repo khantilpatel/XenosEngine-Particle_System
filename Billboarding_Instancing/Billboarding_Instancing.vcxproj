@@ -19,6 +19,7 @@
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="particleshaderclass.cpp" />
     <ClCompile Include="Particlesystemclass.cpp" />
+    <ClCompile Include="SimpleShaderClass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
@@ -32,6 +33,7 @@
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="particleshaderclass.h" />
     <ClInclude Include="Particlesystemclass.h" />
+    <ClInclude Include="SimpleShaderClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="textureshaderclass.h" />

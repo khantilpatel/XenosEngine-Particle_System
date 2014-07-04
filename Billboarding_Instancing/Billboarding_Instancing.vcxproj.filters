@@ -75,6 +75,9 @@
     <ClCompile Include="particleshaderclass.cpp">
       <Filter>class-modules\basic-particle_system</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleShaderClass.cpp">
+      <Filter>class-shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -109,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="particleshaderclass.h">
       <Filter>class-modules\basic-particle_system</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleShaderClass.h">
+      <Filter>class-shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

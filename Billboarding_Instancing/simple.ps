@@ -4,8 +4,16 @@
 // without any changes to the geometry.
 ////////////////////////////////////////////////////////////////////////////////
 
+/////////////
+// GLOBALS //
+/////////////
+Texture2D shaderTexture;
+SamplerState SampleType;
 
 
+//////////////
+// TYPEDEFS //
+//////////////
 struct PixelInputType
 {
     float4 position : SV_POSITION;
@@ -13,9 +21,16 @@ struct PixelInputType
 };
 
 
-PixelInputType PS(VertexInputType input )
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float4 SimplePixelShader(PixelInputType input) : SV_TARGET
 {
-	return input;
+	float4 textureColor;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    return textureColor;
 }
-
-

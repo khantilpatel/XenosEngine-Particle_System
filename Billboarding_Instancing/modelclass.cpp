@@ -46,45 +46,6 @@ bool ModelClass::Initialize(ID3D11Device* device, WCHAR* textureFilename)
 }
 
 
-void ModelClass::Shutdown()
-{
-	// Release the model texture.
-	ReleaseTexture();
-
-	// Shutdown the vertex and instance buffers.
-	ShutdownBuffers();
-
-	return;
-}
-
-
-void ModelClass::Render(ID3D11DeviceContext* deviceContext)
-{
-	// Put the vertex and instance buffers on the graphics pipeline to prepare them for drawing.
-	RenderBuffers(deviceContext);
-
-	return;
-}
-
-
-int ModelClass::GetVertexCount()
-{
-	return m_vertexCount;
-}
-
-
-int ModelClass::GetInstanceCount()
-{
-	return m_instanceCount;
-}
-
-
-ID3D11ShaderResourceView* ModelClass::GetTexture()
-{
-	return m_Texture->GetTexture();
-}
-
-
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
@@ -204,7 +165,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	// Set up the description of the instance buffer.
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
     bufferDesc.ByteWidth = m_nBufferSize;
-    bufferDesc.BindFlags = D3D11_BIND_STREAM_OUTPUT;
+	bufferDesc.BindFlags = D3D11_BIND_STREAM_OUTPUT | D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0;
     bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0;
@@ -217,57 +178,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 	
 	return true;
-}
-
-
-void ModelClass::ShutdownBuffers()
-{
-	// Release the instance buffer.
-	if(m_instanceBuffer)
-	{
-		m_instanceBuffer->Release();
-		m_instanceBuffer = 0;
-	}
-
-	// Release the vertex buffer.
-	if(m_vertexBuffer)
-	{
-		m_vertexBuffer->Release();
-		m_vertexBuffer = 0;
-	}
-
-	return;
-}
-
-
-void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
-{
-	unsigned int strides[2];
-	unsigned int offsets[2];
-	ID3D11Buffer* bufferPointers[2];
-
-
-	// Set the buffer strides.
-	strides[0] = sizeof(VertexType); 
-	strides[1] = sizeof(InstanceType); 
-
-	// Set the buffer offsets.
-	offsets[0] = 0;
-	offsets[1] = 0;
-    
-	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = m_vertexBuffer;	
-	bufferPointers[1] = m_instanceBuffer;
-
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
-
-	//Set the Stream-Out buffer for gemometry shader/ vertex shader stage.
-	// The geometry shader will 
-    // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-
-	return;
 }
 
 
@@ -294,6 +204,38 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 }
 
 
+
+int ModelClass::GetVertexCount()
+{
+	return m_vertexCount;
+}
+
+
+int ModelClass::GetInstanceCount()
+{
+	return m_instanceCount;
+}
+
+ID3D11Buffer* ModelClass::getVertexBuffer()
+{
+	return m_vertexBuffer;
+}
+
+ID3D11Buffer* ModelClass::getInstanceBuffer()
+{
+	return m_instanceBuffer;
+}
+
+ID3D11Buffer* ModelClass::getStreamOutBuffer()
+{
+	return m_StreamOutBuffer;
+}
+
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+	return m_Texture->GetTexture();
+}
+
 void ModelClass::ReleaseTexture()
 {
 	// Release the texture object.
@@ -306,3 +248,36 @@ void ModelClass::ReleaseTexture()
 
 	return;
 }
+
+
+
+void ModelClass::ShutdownBuffers()
+{
+	// Release the instance buffer.
+	if(m_instanceBuffer)
+	{
+		m_instanceBuffer->Release();
+		m_instanceBuffer = 0;
+	}
+
+	// Release the vertex buffer.
+	if(m_vertexBuffer)
+	{
+		m_vertexBuffer->Release();
+		m_vertexBuffer = 0;
+	}
+
+	return;
+}
+
+void ModelClass::Shutdown()
+{
+	// Release the model texture.
+	ReleaseTexture();
+
+	// Shutdown the vertex and instance buffers.
+	ShutdownBuffers();
+
+	return;
+}
+
