@@ -170,7 +170,7 @@ bool SystemClass::Frame()
 
 	// Do the frame processing for the graphics object.
 
-	result = m_Graphics->UpdateFrame(m_Timer->GetTime());
+	result = m_Graphics->UpdateFrame(m_Timer->GetTime(),m_Timer->getTotalTime());
 	if(!result)
 	{
 		return false;

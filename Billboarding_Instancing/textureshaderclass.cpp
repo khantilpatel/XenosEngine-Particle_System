@@ -63,8 +63,8 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	pixelShaderBuffer = 0;
 
     // Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TextureVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-								   &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TextureVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+									0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -103,7 +103,7 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	//hr = D3DX11CompileFromFile(L"Effects.fx", 0, 0, "GS_Billboard", "gs_4_0", 0, 0, 0, &GS_Buffer, 0, 0);
 	//hr = d3d11Device->CreateGeometryShader(GS_Buffer->GetBufferPointer(), GS_Buffer->GetBufferSize(), NULL, &GS)
 	    // Compile the geometry shader code.
-	result = D3DX11CompileFromFile(gsFilename, NULL, NULL, "TextureGeometryShader", "gs_4_0", 0, 0, NULL, 
+	result = D3DX11CompileFromFile(gsFilename, NULL, NULL, "TextureGeometryShader", "gs_5_0", 0, 0, NULL, 
 								   &geometryShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -129,11 +129,11 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	}
 
     // Create the pixel shader from the buffer.
-    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
-	if(FAILED(result))
-	{
-		return false;
-	}
+    //result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+	//if(FAILED(result))
+//	{
+//		return false;
+//	}
 
 	   // Create the pixel shader from the buffer.
 	/*result = device->CreateGeometryShader(geometryShaderBuffer->GetBufferPointer(), geometryShaderBuffer->GetBufferSize(), NULL, &m_geometryShader);
@@ -149,8 +149,8 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	D3D11_SO_DECLARATION_ENTRY pDecl[] =
 	{
 		// semantic name, semantic index, start component, component count, output slot
-		{ 0,"SV_POSITION", 0, 0, 4, 0 },   // output all components of position
-		{ 0, "TEXCOORD0" , 0, 0, 2, 0 }, 	     // output the first 2 texture coordinates
+		{ 0 ,"SV_POSITION", 0, 0, 4, 0 },   // output all components of position
+		{ 0 ,"TEXCOORD"  , 0, 0, 2, 0 }, 	     // output the first 2 texture coordinates
 	};
 
 	//streamOutLayout[0].SemanticName = "";
@@ -161,8 +161,8 @@ bool TextureShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	//streamOutLayout[0].
 
 	result = device->CreateGeometryShaderWithStreamOutput( geometryShaderBuffer->GetBufferPointer(), 
-		geometryShaderBuffer->GetBufferSize(), pDecl, sizeof(pDecl), NULL, 
-		0,  D3D11_SO_NO_RASTERIZED_STREAM, NULL, &m_geometryShader );
+		geometryShaderBuffer->GetBufferSize(), pDecl, 2, NULL, 
+		0,  0, NULL, &m_geometryShader );
 
 	if(FAILED(result))
 	{

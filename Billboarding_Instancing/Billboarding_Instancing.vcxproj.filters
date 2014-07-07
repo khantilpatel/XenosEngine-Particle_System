@@ -78,6 +78,15 @@
     <ClCompile Include="SimpleShaderClass.cpp">
       <Filter>class-shaders</Filter>
     </ClCompile>
+    <ClCompile Include="FireParticalSystemShader.cpp">
+      <Filter>class-shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderUtility.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="MathHelper.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -116,6 +125,15 @@
     <ClInclude Include="SimpleShaderClass.h">
       <Filter>class-shaders</Filter>
     </ClInclude>
+    <ClInclude Include="FireParticalSystemShader.h">
+      <Filter>class-shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderUtility.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="texture.vs">
@@ -134,6 +152,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="simple.ps">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="FireShader.vs">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

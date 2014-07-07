@@ -16,6 +16,7 @@
 
 #include "particleshaderclass.h"
 #include "particlesystemclass.h"
+#include "FireParticalSystemShader.h"
 
 /////////////
 // GLOBALS //
@@ -38,8 +39,10 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool UpdateFrame(float);
-
+	bool UpdateFrame(float,float);
+	
+	 float m_frameTime;
+	float m_TotalTime;
 private:
 	bool Render();
 
@@ -53,7 +56,7 @@ private:
 	ParticleShaderClass* m_ParticleShader;
 	ParticleSystemClass* m_ParticleSystem;
 
-	
+	FireParticalSystemShader* m_FireParticleShader;
 };
 
 #endif

@@ -143,7 +143,7 @@ bool SimpleShaderClass::createInputLayoutDesc(ID3D11Device* device, ID3D10Blob* 
 	unsigned int numElements;
 		// Create the vertex input layout description.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
-	polygonLayout[0].SemanticName = "POSITION";
+	polygonLayout[0].SemanticName = "SV_POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	polygonLayout[0].InputSlot = 0;
@@ -204,19 +204,11 @@ bool SimpleShaderClass::createConstantBuffer_TextureBuffer(ID3D11Device* device)
 }
 
 
-bool SimpleShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount,	ID3D11Buffer* m_StreamOutBuffer, ID3D11ShaderResourceView* texture)
+bool SimpleShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount,	
+							   ID3D11Buffer* m_StreamOutBuffer, ID3D11ShaderResourceView* texture)
 {
 	bool result;
-	unsigned int strides[1];
-	unsigned int offsets[1];
 
-	strides[0] = sizeof(VertexType); 	
-
-	// Set the buffer offsets.
-	offsets[0] = 0;
-	
-
-	deviceContext->IASetVertexBuffers(0, 2, &m_StreamOutBuffer, strides, offsets);
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, texture);
@@ -226,7 +218,7 @@ bool SimpleShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCou
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, vertexCount, instanceCount);
+	RenderShader(deviceContext, vertexCount, instanceCount, m_StreamOutBuffer);
 
 	return true;
 }
@@ -234,19 +226,10 @@ bool SimpleShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCou
 bool SimpleShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,  ID3D11ShaderResourceView* texture)
 {
 	HRESULT result;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
+
 	//MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
 
 
 	// Set shader texture resource in the pixel shader.
@@ -256,8 +239,22 @@ bool SimpleShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, 
 }
 
 
-void SimpleShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount)
+void SimpleShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, 
+									 ID3D11Buffer* m_StreamOutBuffer)
 {
+	unsigned int strides;
+	unsigned int offsets;
+
+	strides = sizeof(VertexType); 	
+
+	// Set the buffer offsets.
+	offsets = 0;
+	
+	deviceContext->SOSetTargets(0, NULL, 0);
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	deviceContext->IASetVertexBuffers(0, 1, &m_StreamOutBuffer, &strides, &offsets);
+	
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);
 
@@ -271,7 +268,7 @@ void SimpleShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int ver
 	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 
 	// Render the triangle.
-	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
+	deviceContext->DrawAuto();//(vertexCount, instanceCount, 0, 0);
 
 	return;
 }

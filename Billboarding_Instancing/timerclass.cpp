@@ -39,21 +39,31 @@ bool TimerClass::Initialize()
 
 void TimerClass::Frame()
 {
-	INT64 currentTime;
+	//INT64 currentTime;
 	float timeDifference;
+	float timeDiffreneceTotal;
 
+	QueryPerformanceCounter((LARGE_INTEGER*)&m_currentTime);
 
-	QueryPerformanceCounter((LARGE_INTEGER*)&currentTime);
+	timeDifference = (float)(m_currentTime - m_previousTime);
 
-	timeDifference = (float)(currentTime - m_startTime);
+	timeDiffreneceTotal = (float)(m_currentTime - m_startTime);
 
 	m_frameTime = timeDifference / m_ticksPerMs;
 
-	m_startTime = currentTime;
+	m_totalTime = timeDiffreneceTotal / m_ticksPerMs;
+
+	m_previousTime = m_currentTime;
 
 	return;
 }
 
+float TimerClass::getTotalTime()
+{
+
+	return m_totalTime;
+
+}
 
 float TimerClass::GetTime()
 {

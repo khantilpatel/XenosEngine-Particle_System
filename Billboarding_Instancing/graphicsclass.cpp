@@ -14,6 +14,8 @@ GraphicsClass::GraphicsClass()
 
 	m_ParticleShader = 0;
 	m_ParticleSystem = 0;
+
+	m_FireParticleShader=0;
 }
 
 
@@ -141,6 +143,104 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	m_FireParticleShader = new FireParticalSystemShader;
+		// Initialize the particle system object.
+	result = m_FireParticleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if(!result)
+	{
+
+		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+
+bool GraphicsClass::UpdateFrame(float frameTime, float totalTime)
+{
+	bool result;
+	m_frameTime = frameTime;
+	m_TotalTime = totalTime;
+		// Run the frame processing for the particle system.
+	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
+
+	// Redsfnder the graphics scene.
+	result = Render();
+
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+bool GraphicsClass::Render()
+{
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	bool result =true;
+
+
+	// Clear the buffers to begin the scene.
+	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Get the world, view, and projection matrices from the camera and d3d objects.
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_D3D->GetWorldMatrix(worldMatrix);
+	m_D3D->GetProjectionMatrix(projectionMatrix);
+
+
+			// Turn on alpha blending.
+	m_D3D->EnableAlphaBlending();
+
+		// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the texture shader.
+	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
+					  m_ParticleSystem->GetTexture());
+	if(!result)
+	{
+		return false;
+	}
+
+
+		// Turn off alpha blending.
+	m_D3D->DisableAlphaBlending();
+
+	
+
+		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//m_Model->Render(m_D3D->GetDeviceContext());
+
+
+
+	// Render the model using the texture shader.
+	/*result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+		worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
+		m_Model->getStreamOutBuffer(), m_Model->GetTexture());*/
+
+
+
+
+	//m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, projectionMatrix, m_frameTime, m_TotalTime);
+
+
+	/*	m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+			m_FireParticleShader->m_DrawBuffer, m_Model->GetTexture());*/
+	if(!result)
+	{
+		return false;
+	}
+
+	// Present the rendered scene to the screen.
+	m_D3D->EndScene();
+
 	return true;
 }
 
@@ -205,83 +305,3 @@ void GraphicsClass::Shutdown()
 	return;
 }
 
-
-bool GraphicsClass::UpdateFrame(float frameTime)
-{
-	bool result;
-		// Run the frame processing for the particle system.
-	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
-
-	// Redsfnder the graphics scene.
-	result = Render();
-
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
-bool GraphicsClass::Render()
-{
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
-	bool result;
-
-
-	// Clear the buffers to begin the scene.
-	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-
-	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
-
-	// Get the world, view, and projection matrices from the camera and d3d objects.
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_D3D->GetWorldMatrix(worldMatrix);
-	m_D3D->GetProjectionMatrix(projectionMatrix);
-
-
-			// Turn on alpha blending.
-	m_D3D->EnableAlphaBlending();
-
-		// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
-
-	// Render the model using the texture shader.
-	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-					  m_ParticleSystem->GetTexture());
-	if(!result)
-	{
-		return false;
-	}
-
-
-		// Turn off alpha blending.
-	m_D3D->DisableAlphaBlending();
-
-	
-
-		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	//m_Model->Render(m_D3D->GetDeviceContext());
-
-
-
-	// Render the model using the texture shader.
-	result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
-		worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
-		m_Model->getStreamOutBuffer(), m_Model->GetTexture());
-
-	m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
-		m_Model->getStreamOutBuffer(), m_Model->GetTexture());
-
-	if(!result)
-	{
-		return false;
-	}
-
-	// Present the rendered scene to the screen.
-	m_D3D->EndScene();
-
-	return true;
-}

@@ -43,7 +43,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext*,  ID3D11ShaderResourceView*);
-	void RenderShader(ID3D11DeviceContext*, int, int);
+	void RenderShader(ID3D11DeviceContext*, int, int, ID3D11Buffer* );
 
 private:
 	ID3D11VertexShader* m_vertexShader;

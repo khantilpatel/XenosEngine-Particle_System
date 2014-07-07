@@ -182,7 +182,9 @@ bool ParticleSystemClass::InitializeParticleSystem()
 		m_particleList[i].active = false;
 	}
 
-		// Initialize the current particle count to zero since none are emitted yet.
+		// Initialize the current particle count to 
+	
+	//since none are emitted yet.
 	m_currentParticleCount = 0;
 
 	// Clear the initial accumulated time for the particle per second emission rate.

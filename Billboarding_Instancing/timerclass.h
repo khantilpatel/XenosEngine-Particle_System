@@ -25,12 +25,15 @@ public:
 	void Frame();
 
 	float GetTime();
-
+	float TimerClass::getTotalTime();
 private:
 	INT64 m_frequency;
 	float m_ticksPerMs;
 	INT64 m_startTime;
+	INT64 m_previousTime;
+	INT64 m_currentTime;
 	float m_frameTime;
+	float m_totalTime;
 };
 
 #endif
