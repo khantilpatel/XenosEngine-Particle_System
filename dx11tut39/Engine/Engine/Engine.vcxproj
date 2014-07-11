@@ -10,6 +10,43 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\cameraclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\d3dclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\depthshaderclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\graphicsclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\inputclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\lightclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\main.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\modelclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\positionclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\rendertextureclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\shadowshaderclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\systemclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\textureclass.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Downloads\dx11src41\source\timerclass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\cameraclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\d3dclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\depthshaderclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\graphicsclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\inputclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\lightclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\modelclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\positionclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\rendertextureclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\shadowshaderclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\systemclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\textureclass.h" />
+    <ClInclude Include="..\..\..\..\..\..\Downloads\dx11src41\source\timerclass.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\Downloads\dx11src41\source\depth.ps" />
+    <None Include="..\..\..\..\..\..\Downloads\dx11src41\source\depth.vs" />
+    <None Include="..\..\..\..\..\..\Downloads\dx11src41\source\shadow.ps" />
+    <None Include="..\..\..\..\..\..\Downloads\dx11src41\source\shadow.vs" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B0830440-F70E-48C2-8770-725DEB387E86}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -75,33 +112,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="cameraclass.cpp" />
-    <ClCompile Include="d3dclass.cpp" />
-    <ClCompile Include="graphicsclass.cpp" />
-    <ClCompile Include="inputclass.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="particlesystemclass.cpp" />
-    <ClCompile Include="systemclass.cpp" />
-    <ClCompile Include="textureclass.cpp" />
-    <ClCompile Include="particleshaderclass.cpp" />
-    <ClCompile Include="timerclass.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="cameraclass.h" />
-    <ClInclude Include="d3dclass.h" />
-    <ClInclude Include="graphicsclass.h" />
-    <ClInclude Include="inputclass.h" />
-    <ClInclude Include="particlesystemclass.h" />
-    <ClInclude Include="systemclass.h" />
-    <ClInclude Include="textureclass.h" />
-    <ClInclude Include="particleshaderclass.h" />
-    <ClInclude Include="timerclass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="particle.ps" />
-    <None Include="particle.vs" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

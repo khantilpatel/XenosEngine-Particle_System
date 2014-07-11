@@ -1,34 +1,34 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: textureclass.h
+// Filename: cameraclass.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _TEXTURECLASS_H_
-#define _TEXTURECLASS_H_
+#ifndef _ShaderUtility_H_
+#define _ShaderUtility_H_
+
 
 
 //////////////
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx11tex.h>
+#include <d3dx10math.h>
+#include <d3dx11async.h>
+#include <fstream>
+#include <xnamath.h>
+#include "MathHelper.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: TextureClass
+// Class name: CameraClass
 ////////////////////////////////////////////////////////////////////////////////
-class TextureClass
+class ShaderUtility
 {
 public:
-	TextureClass();
-	TextureClass(const TextureClass&);
-	~TextureClass();
+	
+	ID3D11ShaderResourceView* CreateRandomTexture1DSRV(ID3D11Device* device);
 
-	bool Initialize(ID3D11Device*, WCHAR*);
-	void Shutdown();
+	ID3D11ShaderResourceView* CreateTextureFromFile(ID3D11Device* device, WCHAR* filename);
 
-	ID3D11ShaderResourceView* GetTexture();
-
-private:
-	ID3D11ShaderResourceView* m_texture;
 };
+
 
 #endif
