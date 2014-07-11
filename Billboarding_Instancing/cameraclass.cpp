@@ -49,6 +49,12 @@ D3DXVECTOR3 CameraClass::GetPosition()
 	return D3DXVECTOR3(m_positionX, m_positionY, m_positionZ);
 }
 
+XMFLOAT3 CameraClass::GetPosition_XM()
+{
+	return XMFLOAT3(m_positionX, m_positionY, m_positionZ);
+}
+
+
 
 D3DXVECTOR3 CameraClass::GetRotation()
 {

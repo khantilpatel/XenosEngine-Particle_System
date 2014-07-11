@@ -87,6 +87,9 @@
     <ClCompile Include="MathHelper.cpp">
       <Filter>class-framework\utility</Filter>
     </ClCompile>
+    <ClCompile Include="PositionClass.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -132,6 +135,9 @@
       <Filter>class-framework\utility</Filter>
     </ClInclude>
     <ClInclude Include="MathHelper.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionClass.h">
       <Filter>class-framework\utility</Filter>
     </ClInclude>
   </ItemGroup>

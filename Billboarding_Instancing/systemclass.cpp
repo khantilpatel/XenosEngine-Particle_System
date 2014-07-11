@@ -8,7 +8,8 @@ SystemClass::SystemClass()
 {
 	m_Input = 0;
 	m_Graphics = 0;
-		m_Timer = 0;
+	m_Timer = 0;
+	m_Position = 0;
 
 }
 
@@ -44,7 +45,7 @@ bool SystemClass::Initialize()
 	}
 
 	// Initialize the input object.
-	m_Input->Initialize();
+	m_Input->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight);
 
 	// Create the graphics object.  This object will handle rendering all the graphics for this application.
 	m_Graphics = new GraphicsClass;
@@ -76,6 +77,17 @@ bool SystemClass::Initialize()
 		return false;
 	}
 
+		// Create the position object.
+	m_Position = new PositionClass;
+	if(!m_Position)
+	{
+		return false;
+	}
+
+	// Set the initial position of the viewer to the same as the initial camera position.
+	m_Position->SetPosition(0.0f, 2.0f, -10.0f);
+
+	return true;
 
 	return true;
 }
@@ -83,6 +95,13 @@ bool SystemClass::Initialize()
 
 void SystemClass::Shutdown()
 {
+
+	// Release the position object.
+	if(m_Position)
+	{
+		delete m_Position;
+		m_Position = 0;
+	}
 	// Release the graphics object.
 	if(m_Graphics)
 	{
@@ -157,25 +176,77 @@ void SystemClass::Run()
 bool SystemClass::Frame()
 {
 	bool result;
-
+		float posX, posY, posZ, rotX, rotY, rotZ;
 		// Update the system stats.
 	m_Timer->Frame();
 
 
-	// Check if the user pressed escape and wants to exit the application.
-	if(m_Input->IsKeyDown(VK_ESCAPE))
+	// Read the user input.
+	result = m_Input->Frame();
+	if(!result)
 	{
 		return false;
 	}
-
-	// Do the frame processing for the graphics object.
-
-	result = m_Graphics->UpdateFrame(m_Timer->GetTime(),m_Timer->getTotalTime());
+	
+	// Check if the user pressed escape and wants to exit the application.
+	if(m_Input->IsEscapePressed() == true)
+	{
+		return false;
+	}
+		// Do the frame input processing.
+	result = HandleInput(m_Timer->GetTime());
 	if(!result)
 	{
 		return false;
 	}
 
+		// Get the view point position/rotation.
+	m_Position->GetPosition(posX, posY, posZ);
+	m_Position->GetRotation(rotX, rotY, rotZ);
+	// Do the frame processing for the graphics object.
+
+	result = m_Graphics->UpdateFrame(m_Timer->GetTime(),m_Timer->getTotalTime(), posX, posY, posZ, rotX, rotY, rotZ);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool SystemClass::HandleInput(float frameTime)
+{
+	bool keyDown;
+
+
+	// Set the frame time for calculating the updated position.
+	m_Position->SetFrameTime(frameTime);
+
+	// Handle the input.
+	keyDown = m_Input->IsLeftPressed();
+	m_Position->TurnLeft(keyDown);
+
+	keyDown = m_Input->IsRightPressed();
+	m_Position->TurnRight(keyDown);
+
+	keyDown = m_Input->IsUpPressed();
+	m_Position->MoveForward(keyDown);
+
+	keyDown = m_Input->IsDownPressed();
+	m_Position->MoveBackward(keyDown);
+
+	keyDown = m_Input->IsAPressed();
+	m_Position->MoveUpward(keyDown);
+
+	keyDown = m_Input->IsZPressed();
+	m_Position->MoveDownward(keyDown);
+
+	keyDown = m_Input->IsPgUpPressed();
+	m_Position->LookUpward(keyDown);
+
+	keyDown = m_Input->IsPgDownPressed();
+	m_Position->LookDownward(keyDown);
+	
 	return true;
 }
 
@@ -188,7 +259,7 @@ LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam
 		case WM_KEYDOWN:
 		{
 			// If a key is pressed send it to the input object so it can record that state.
-			m_Input->KeyDown((unsigned int)wparam);
+			//m_Input->KeyDown((unsigned int)wparam);
 			return 0;
 		}
 
@@ -196,7 +267,7 @@ LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam
 		case WM_KEYUP:
 		{
 			// If a key is released then send it to the input object so it can unset the state for that key.
-			m_Input->KeyUp((unsigned int)wparam);
+		//	m_Input->KeyUp((unsigned int)wparam);
 			return 0;
 		}
 

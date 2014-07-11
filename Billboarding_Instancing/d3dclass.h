@@ -50,6 +50,11 @@ public:
 
 		void EnableAlphaBlending();
 	void DisableAlphaBlending();
+	void EnableAdditiveBlending();
+
+	void D3DClass::EnableDepthStencilState();
+	void D3DClass::DisableDepthStencilState();
+	void D3DClass::NoDepthWriteStencilState();
 
 private:
 	bool m_vsync_enabled;
@@ -60,7 +65,9 @@ private:
 	ID3D11DeviceContext* m_deviceContext;
 	ID3D11RenderTargetView* m_renderTargetView;
 	ID3D11Texture2D* m_depthStencilBuffer;
-	ID3D11DepthStencilState* m_depthStencilState;
+	ID3D11DepthStencilState* m_depthEnableStencilState;
+	ID3D11DepthStencilState* m_depthDisableStencilState;
+	ID3D11DepthStencilState* m_depthNoWriteStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
 	ID3D11RasterizerState* m_rasterState;
 	D3DXMATRIX m_projectionMatrix;
@@ -68,6 +75,7 @@ private:
 	D3DXMATRIX m_orthoMatrix;
 	ID3D11BlendState* m_alphaEnableBlendingState;
 	ID3D11BlendState* m_alphaDisableBlendingState;
+	ID3D11BlendState* m_additiveEnableBlendingState;
 };
 
 #endif

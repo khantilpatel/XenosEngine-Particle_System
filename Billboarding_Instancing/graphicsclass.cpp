@@ -100,7 +100,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the texture shader object.
-	result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	//result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the simple shader object.", L"Error", MB_OK);
@@ -135,7 +135,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the particle system object.
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"star.dds");
+	//result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"star.dds");
 	if(!result)
 	{
 
@@ -157,13 +157,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 }
 
 
-bool GraphicsClass::UpdateFrame(float frameTime, float totalTime)
+bool GraphicsClass::UpdateFrame(float frameTime, float totalTime, float posX, float posY, float posZ, float rotX, float rotY, float rotZ)
 {
 	bool result;
 	m_frameTime = frameTime;
 	m_TotalTime = totalTime;
+
+	m_Camera->SetPosition(posX, posY, posZ);
+	m_Camera->SetRotation(rotX, rotY, rotZ);
+
 		// Run the frame processing for the particle system.
-	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
+//	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
 
 	// Redsfnder the graphics scene.
 	result = Render();
@@ -196,43 +200,47 @@ bool GraphicsClass::Render()
 
 
 			// Turn on alpha blending.
-	m_D3D->EnableAlphaBlending();
+	//m_D3D->EnableAlphaBlending();
 
 		// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
+	//m_ParticleSystem->Render(m_D3D->GetDeviceContext());
 
-	// Render the model using the texture shader.
-	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-					  m_ParticleSystem->GetTexture());
-	if(!result)
-	{
-		return false;
-	}
-
-
-		// Turn off alpha blending.
-	m_D3D->DisableAlphaBlending();
+	//// Render the model using the texture shader.
+	//result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), 
+	//	worldMatrix, viewMatrix, projectionMatrix, m_ParticleSystem->GetTexture());
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	
 
+		// Turn off alpha blending.
+	//m_D3D->DisableAlphaBlending();
+
+	//m_D3D->DisableDepthStencilState();
+	m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
+	projectionMatrix, m_frameTime, m_TotalTime, m_Camera->GetPosition_XM());
+
+	//m_D3D->EnableAdditiveBlending();
+	//m_D3D->NoDepthWriteStencilState();
+
+//	m_FireParticleShader->RenderShader_Draw(m_D3D->GetDeviceContext());
+
+	//m_D3D->EnableAlphaBlending();
+	//m_D3D->EnableDepthStencilState();
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	//m_Model->Render(m_D3D->GetDeviceContext());
 
 
 
 	// Render the model using the texture shader.
-	/*result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
-		worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
-		m_Model->getStreamOutBuffer(), m_Model->GetTexture());*/
+	//result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+	//	worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
+	//	m_Model->getStreamOutBuffer(), m_Model->GetTexture());
 
-
-
-
-	//m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, projectionMatrix, m_frameTime, m_TotalTime);
-
-
-	/*	m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
-			m_FireParticleShader->m_DrawBuffer, m_Model->GetTexture());*/
+	//m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+	//		m_FireParticleShader->m_DrawBuffer, m_Model->GetTexture());
 	if(!result)
 	{
 		return false;

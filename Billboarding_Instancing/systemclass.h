@@ -22,7 +22,7 @@
 #include "inputclass.h"
 #include "graphicsclass.h"
 #include "timerclass.h"
-
+#include "positionclass.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: SystemClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ private:
 	bool Frame();
 	void InitializeWindows(int&, int&);
 	void ShutdownWindows();
-
+	bool SystemClass::HandleInput(float);
 private:
 	LPCWSTR m_applicationName;
 	HINSTANCE m_hinstance;
@@ -52,6 +52,7 @@ private:
 	InputClass* m_Input;
 	GraphicsClass* m_Graphics;
 	TimerClass* m_Timer;
+	PositionClass* m_Position;
 };
 
 

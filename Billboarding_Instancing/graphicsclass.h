@@ -39,7 +39,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool UpdateFrame(float,float);
+	bool UpdateFrame(float,float, float, float, float, float, float, float);
 	
 	 float m_frameTime;
 	float m_TotalTime;

@@ -9,7 +9,7 @@
 // INCLUDES //
 //////////////
 #include <d3dx10math.h>
-
+#include <xnamath.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass
@@ -26,6 +26,7 @@ public:
 
 	D3DXVECTOR3 GetPosition();
 	D3DXVECTOR3 GetRotation();
+	XMFLOAT3 GetPosition_XM();
 
 	void Render();
 	void GetViewMatrix(D3DXMATRIX&);
