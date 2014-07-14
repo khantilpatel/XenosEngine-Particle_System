@@ -1,4 +1,5 @@
 #include "FireParticalSystemShader.h"
+#include <iostream>
 
 LPCWSTR STR_CLASSNAME = L"FireParticalSystemShader";
 FireParticalSystemShader::FireParticalSystemShader()
@@ -7,6 +8,7 @@ FireParticalSystemShader::FireParticalSystemShader()
 	m_DrawBuffer = 0;
 	m_StreamOutBuffer = 0;
 	m_StagingStreamOutBuffer = 0;
+	m_SO_constant_buffer= 0 ;
 	// Shader Variables 
 	m_vertexShader_StreamOut = 0;
 	m_pixelShader_StreamOut = 0;
@@ -21,7 +23,7 @@ FireParticalSystemShader::FireParticalSystemShader()
 
 	//m_MaxParticles = 0;
 
-	m_particle_parameter_buffer = 0;
+	m_world_matrix_buffer = 0;
 	m_sampleState_Shader = 0;
 
 	m_ShaderUtility = new ShaderUtility;
@@ -45,44 +47,26 @@ FireParticalSystemShader::FireParticalSystemShader(const FireParticalSystemShade
 }
 
 
-bool FireParticalSystemShader::Initialize(ID3D11Device* device, HWND hwnd)
-{
-	bool result;
-
-	//m_MaxParticles  = 10000;
-	flag_FirstRun = true;
-	// Initialize the vertex and pixel shaders.
-	result = InitializeShader_StreamOut(device, hwnd, L"FireShader.vs", L"FireShader.vs" ,L"ddd");
-	if(!result)
-	{
-		MessageBox(hwnd, STR_CLASSNAME, L"InitializeShader_StreamOut:: FAILED", MB_OK);
-		return false;
-	}
-
-	//result = InitializeShader_Draw(device, hwnd, L"FireShader.vs", L"FireShader.vs" ,L"FireShader.vs");
-	if(!result)
-	{
-		MessageBox(hwnd, STR_CLASSNAME, L"InitializeShader_Draw:: FAILED", MB_OK);
-		return false;
-	}
-
-
-	return true;
-}
-
-
 bool FireParticalSystemShader::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, 
 									  D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 									  float frameTime, float gameTime, XMFLOAT3 camEyePos )
 {
 	HRESULT result;
 	D3DXMATRIX* ViewProj = new D3DXMATRIX;
-		
+	cout<< "FireParticle:" << frameTime << "||" << gameTime << "||\n";
+
+	//D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
+	//D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	//D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+
+
 	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
+
+	D3DXMatrixTranspose(ViewProj, ViewProj);
 
 		///////// STREAM_OUT/////////
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters_StreamOut(deviceContext, frameTime,gameTime,camEyePos,ViewProj);
+	result = SetShaderParameters_StreamOut(deviceContext, frameTime,gameTime);
 	if(!result)
 	{
 		//return false;
@@ -91,15 +75,135 @@ bool FireParticalSystemShader::Render(ID3D11DeviceContext* deviceContext, D3DXMA
 	// Now render the prepared buffers with the shader.
 	RenderShader_StreamOut(deviceContext);
 
+
+	result = SetShaderParameters_Draw(deviceContext, frameTime,gameTime,camEyePos,ViewProj);
+	if(!result)
+	{
+		return false;
+	}
+
 	//RenderShader_Draw(deviceContext);
 	return  true;
 }
 
-void FireParticalSystemShader::Shutdown()
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Binds Shader Parameters at runtime every frame:
+// 1. ParticleParametersBufferType.
+// 2. Random function Texture.
+// 3. Sampler for the  texture sampling function.
+bool FireParticalSystemShader::SetShaderParameters_StreamOut(ID3D11DeviceContext* deviceContext,
+															 float timeStep, float gameTime)
+															 
 {
-	ShutdownShader_StreamOut();
-	ShutdownShader_Draw();
+
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE so_mappedResource;	
+	SOBufferType* so_dataPtr;
+
+	unsigned int bufferNumber;
+	
+	////////////////////////////////////////////////////////////
+	// Copy the values from CPU to Buffer for later use in GPU
+	////////////////////////////////////////////////////////////
+
+	
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(m_SO_constant_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &so_mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	so_dataPtr = (SOBufferType*)so_mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.	
+	so_dataPtr->gTimeStep = timeStep;//0.9f;
+	so_dataPtr->gGameTime = gameTime;// 0.2f;
+	so_dataPtr->gEmitPosition = m_Emit_Position;
+
+
+	// Unlock the constant buffer.
+    deviceContext->Unmap(m_SO_constant_buffer, 0);
+
+	
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+	
+	////////////////////////////////////////////////////////////////
+	// Vertex Shader Constant Resources Set HERE
+   // deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_particle_parameter_buffer);
+	//////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////
+	// Geometry Shader Constant Resources Set HERE
+	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &m_SO_constant_buffer);
+	deviceContext->GSSetShaderResources(0, 1, &m_RandomTexSRV_Shader);
+	deviceContext->GSSetSamplers(0, 1, &m_sampleState_Shader);
+	/////////////////////////////////////////////////////////////////
+
+
+	///////////////////////////////////////////////////////////////
+	// Geometry Shader Constant Resources Set HERE
+//	deviceContext->PSSetShaderResources(0, 1, &m_FireTexture);
+	//deviceContext->PSSetSamplers(0, 1, &m_sampleState_Shader);
+	/////////////////////////////////////////////////////////////////
+
+	return true;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool FireParticalSystemShader::SetShaderParameters_Draw(ID3D11DeviceContext* deviceContext,
+															 float timeStep, float gameTime,
+															 XMFLOAT3 camEyePos, D3DXMATRIX* ViewProj )
+{
+	HRESULT result;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+	WorldMatrixBuffer* dataPtr;
+	unsigned int bufferNumber;
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(m_world_matrix_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr = (WorldMatrixBuffer*)mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.
+	dataPtr->gViewProj = *ViewProj;
+	dataPtr->gEyePosition = camEyePos;
+	
+	cout<< "CamPos||X:" <<camEyePos.x << "||Y:"<<camEyePos.y <<"||Z:"<<camEyePos.z<<"||\n";
+	// Unlock the constant buffer.
+    deviceContext->Unmap(m_world_matrix_buffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+	
+	////////////////////////////////////////////////////////////////
+	// Vertex Shader Constant Resources Set HERE
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_world_matrix_buffer);
+	//////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////
+	// Geometry Shader Constant Resources Set HERE
+	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &m_world_matrix_buffer);
+	/////////////////////////////////////////////////////////////////
+	
+	///////////////////////////////////////////////////////////////
+	// Geometry Shader Constant Resources Set HERE
+	deviceContext->PSSetShaderResources(0, 1, &m_FireTexture);
+	deviceContext->PSSetSamplers(0, 1, &m_sampleState_Shader);
+	/////////////////////////////////////////////////////////////////
+
+	return true;
+}
+
 
 
 void FireParticalSystemShader::RenderShader_StreamOut(ID3D11DeviceContext* deviceContext)
@@ -109,29 +213,40 @@ void FireParticalSystemShader::RenderShader_StreamOut(ID3D11DeviceContext* devic
 	unsigned int stride;
 	unsigned int offset ;
 	ID3D11Buffer* bufferPointers;
-
+	ID3D11Buffer* bufferArrayNull[1] = {0};
 	// Set the buffer strides.
 	stride = sizeof(Particle);
 
 	// Set the buffer offsets.
 	offset = 0;
 
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	////////////////////////////////////////////////////////////////////
+	// Input Assembler Stage
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-
-	deviceContext->SOSetTargets(1, &m_StreamOutBuffer, &offset);
-	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout_streamOut);
+	////////////////////////////////////////////////////////////////////
 
-	// Set the vertex and pixel shaders that will be used to render this triangle.
+	////////////////////////////////////////////////////////////////////
+	// Vertex Shader Stage
 	deviceContext->VSSetShader(m_vertexShader_StreamOut, NULL, 0);
+	////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////
+	// Geometry Shader Stage
 	deviceContext->GSSetShader(m_geometryShader_StreamOut, NULL, 0);
+	////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////
+	// Stream-out Stage
+	deviceContext->SOSetTargets(1, &m_StreamOutBuffer, &offset);
+	////////////////////////////////////////////////////////////////////
 
 
-	ID3D11Buffer* bufferArray[1] = {0};
-	deviceContext->PSSetShader(NULL, NULL, 0);
 	
-
+	////////////////////////////////////////////////////////////////////
+	// Stream-out Stage
+	deviceContext->PSSetShader(NULL, NULL, 0);
+	////////////////////////////////////////////////////////////////////
 	
 
     
@@ -141,43 +256,87 @@ void FireParticalSystemShader::RenderShader_StreamOut(ID3D11DeviceContext* devic
 		// Set the vertex buffer to active in the input assembler so it can be rendered.
 		deviceContext->IASetVertexBuffers(0, 1, &bufferPointers, &stride, &offset);
 		deviceContext->Draw(1,0);
-		//flag_FirstRun = false;
+		deviceContext->SOSetTargets(1, bufferArrayNull, 0);
+		deviceContext->IASetVertexBuffers(0, 1, bufferArrayNull, &stride, &offset);
+		flag_FirstRun = false;
 	}
 	else
 	{
 		bufferPointers = m_DrawBuffer;
 		deviceContext->IASetVertexBuffers(0, 1, &bufferPointers, &stride, &offset);
 		deviceContext->DrawAuto();
+		deviceContext->SOSetTargets(1, bufferArrayNull, 0);
+		deviceContext->IASetVertexBuffers(0, 1, bufferArrayNull, &stride, &offset);
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////
-	// DEBUG
-//	deviceContext->CopyResource( m_StagingStreamOutBuffer, m_StreamOutBuffer );
-//
-//D3D11_MAPPED_SUBRESOURCE data;
-//deviceContext->Map( m_StagingStreamOutBuffer, 0, D3D11_MAP_READ, 0, &data ) ;
-//
-//	struct GS_OUTPUT
-//	{
-//		D3DXVECTOR3 COLOUR;
-//		D3DXVECTOR3 DOMAIN_SHADER_LOCATION;
-//		D3DXVECTOR3 WORLD_POSITION;
-//	};
-//
-//	Particle *pRaw = reinterpret_cast< Particle* >( data.pData );
-//
-//
-//	/* Work with the pRaw[] array here */
-//	// Consider StringCchPrintf() and OutputDebugString() as simple ways of printing the above struct, or use the debugger and step through.
-//	
-//	deviceContext->Unmap( m_StagingStreamOutBuffer, 0 );
-//
-	//////////////////////////////////////////////////////////////////////////////////
+	swap(m_DrawBuffer, m_StreamOutBuffer);
+		
+}
 
-//	swap(m_DrawBuffer, m_StreamOutBuffer);
+bool FireParticalSystemShader::RenderShader_Draw(ID3D11DeviceContext* deviceContext)
+{
+	unsigned int strides;
+	unsigned int offsets;
+
+	strides = sizeof(Particle); 	
+
+	// Set the buffer offsets.
+	offsets = 0;
 	
+	//deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGL);
+
+	ID3D11Buffer* bufferArray[1] = {0};
+
+	deviceContext->SOSetTargets(1, bufferArray, 0);
+	//deviceContext->PSInput(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	deviceContext->IASetVertexBuffers(0, 1, &m_DrawBuffer, &strides, &offsets);
+	
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(m_layout_Draw);
+
+    // Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(m_vertexShader_Draw, NULL, 0);
+	deviceContext->GSSetShader(m_geometryShader_Draw, NULL, 0);
+   // deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+	
+	deviceContext->PSSetShader(m_pixelShader_Draw, NULL, 0);
+	// Set the sampler state in the pixel shader.
+	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+	// Render the triangle.
+	deviceContext->DrawAuto();//(vertexCount, instanceCount, 0, 0);
+
+		deviceContext->IASetVertexBuffers(0, 1, bufferArray, &strides, &offsets);
+	return true;
+}
 
 
+
+
+bool FireParticalSystemShader::Initialize(ID3D11Device* device, HWND hwnd)
+{
+	bool result;
+
+	//m_MaxParticles  = 10000;
+	flag_FirstRun = true;
+	// Initialize the vertex and pixel shaders.
+	result = InitializeShader_StreamOut(device, hwnd, L"FireShader.hlsl", L"FireShader.hlsl" ,L"ddd");
+	if(!result)
+	{
+		MessageBox(hwnd, STR_CLASSNAME, L"InitializeShader_StreamOut:: FAILED", MB_OK);
+		return false;
+	}
+
+	result = InitializeShader_Draw(device, hwnd, L"FireShader.vs", L"FireShader.vs" ,L"FireShader.vs");
+	if(!result)
+	{
+		MessageBox(hwnd, STR_CLASSNAME, L"InitializeShader_Draw:: FAILED", MB_OK);
+		return false;
+	}
+
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +365,7 @@ bool FireParticalSystemShader::InitializeShader_StreamOut(ID3D11Device* device, 
 
     // Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "StreamOutVS", "vs_5_0",
-							D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+							D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 								   &vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -224,7 +383,7 @@ bool FireParticalSystemShader::InitializeShader_StreamOut(ID3D11Device* device, 
 		return false;
 	}
 
-	result = D3DX11CompileFromFile(gsFilename, NULL, NULL, "StreamOutGS", "gs_5_0", 0, 0, NULL, 
+	result = D3DX11CompileFromFile(L"GeometryShaderFire.hlsl", NULL, NULL, "main", "gs_5_0", D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 								   &geometryShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -253,12 +412,12 @@ bool FireParticalSystemShader::InitializeShader_StreamOut(ID3D11Device* device, 
 
 	////////////////////////////////////////////////////////////////////
 	///Create Geometry Shader with Stream-out
-	/////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////
 
 	D3D11_SO_DECLARATION_ENTRY pDecl[] =
 	{
 		//// semantic name, semantic index, start component, component count, output slot
-			{ 0 ,"POSITION" , 0, 0, 3, 0 },   // output all components of position
+		{ 0 ,"POSITION" , 0, 0, 3, 0 },   // output all components of position
 		{ 0 ,"VELOCITY" , 0, 0, 3, 0 }, 	     // output the first 2 texture coordinates
 		{ 0 ,"SIZE"     , 0, 0, 2, 0 }, 	     // output the first 2 texture coordinates
 		{ 0 ,"AGE"      , 0, 0, 1, 0 },  	     // output the first 2 texture coordinates
@@ -273,11 +432,6 @@ bool FireParticalSystemShader::InitializeShader_StreamOut(ID3D11Device* device, 
 	result = device->CreateGeometryShaderWithStreamOutput( geometryShaderBuffer->GetBufferPointer(), 
 		geometryShaderBuffer->GetBufferSize(), pDecl, 5, NULL, 
 		0,  D3D11_SO_NO_RASTERIZED_STREAM, NULL, &m_geometryShader_StreamOut );
-
-
-
-
-
 
 	if(FAILED(result))
 	{
@@ -305,17 +459,13 @@ bool FireParticalSystemShader::InitializeShader_StreamOut(ID3D11Device* device, 
 	// 3. Create Vertex Buffer m_initBuffer m_DrawBuffer m_StreamOutBuffer
 	//////////////////////////////////////////////////////////////////////////////////
 	FireParticalSystemShader::InitVertextBuffers(device);
-
-	////////////////////////////////////////////////
-	// Emit postion for particals in fire effect
-	m_Emit_Position = XMFLOAT3(0.0f, 2.0f, 2.0f); 
 	////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 4. Create Constant/Uniform Buffer for m_particle_parameter_buffer|m_sampleState_Shader|m_RandomTexSRV_Shader.
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	createConstantBuffer_StreamOut(device);
-
+	/////////////////////////////////////////////////////////////////////////////////////
 
 	return true;
 }
@@ -345,8 +495,8 @@ bool FireParticalSystemShader::InitVertextBuffers(ID3D11Device* device)
 	particle->Size =  XMFLOAT2(0.0,10.0);
 	particle->InitialVel = XMFLOAT3(3.0,0.0,0.0);
 	particle->InitialPos = XMFLOAT3(12.0,32.0,0.0);
-	particle->Age  = 23.0f;
-	particle->Type = 1; 
+	particle->Age  = 0.0f;
+	particle->Type = 0; 
 	
     particleBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     particleBufferDesc.ByteWidth = sizeof(Particle) * m_vertexCount;
@@ -392,7 +542,7 @@ bool FireParticalSystemShader::InitVertextBuffers(ID3D11Device* device)
 	// Set up the description of the instance buffer.
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
     bufferDesc.ByteWidth = sizeof(Particle) * m_nBufferSize;
-	bufferDesc.BindFlags = D3D11_BIND_STREAM_OUTPUT ;//| D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.BindFlags =  D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_STREAM_OUTPUT;
     bufferDesc.CPUAccessFlags = 0;
     bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0;
@@ -461,94 +611,27 @@ bool FireParticalSystemShader::createInputLayoutDesc_StreamOut(ID3D11Device* dev
 	return true;
 }
 
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Binds Shader Parameters at runtime every frame:
-// 1. ParticleParametersBufferType.
-// 2. Random function Texture.
-// 3. Sampler for the  texture sampling function.
-bool FireParticalSystemShader::SetShaderParameters_StreamOut(ID3D11DeviceContext* deviceContext,
-															 float timeStep, float gameTime,
-															 XMFLOAT3 camEyePos, D3DXMATRIX* ViewProj )
-{
-
-	HRESULT result;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-	ParticleParametersBufferType* dataPtr;
-	unsigned int bufferNumber;
-	
-	////////////////////////////////////////////////////////////
-	// Copy the values from CPU to Buffer for later use in GPU
-	////////////////////////////////////////////////////////////
-
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(m_particle_parameter_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Get a pointer to the data in the constant buffer.
-	dataPtr = (ParticleParametersBufferType*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	dataPtr->gTimeStep = 0.5;
-	dataPtr->gGameTime = gameTime;
-	dataPtr->gEmitPosition = m_Emit_Position;
-	dataPtr->gEyePosition = camEyePos;
-	dataPtr->gViewProj = *ViewProj;
-
-	// Unlock the constant buffer.
-    deviceContext->Unmap(m_particle_parameter_buffer, 0);
-
-	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
-	
-
-	// Now set the constant buffer in the vertex shader with the updated values.
-    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_particle_parameter_buffer);
-//	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
-
-	//////////////////////////////////////////////////////////////
-	// Set the Randome Texture resource into the pipleine 
-	//////////////////////////////////////////////////////////////
-	// Set shader texture resource in the pixel shader.
-	deviceContext->GSSetShaderResources(0, 1, &m_RandomTexSRV_Shader);
-
-	deviceContext->PSSetShaderResources(0, 1, &m_FireTexture);
-	//////////////////////////////////////////////////////////////
-	// Set the Sampler state object into the pipleine 
-	//////////////////////////////////////////////////////////////
-	deviceContext->GSSetSamplers(0, 1, &m_sampleState_Shader);
-	deviceContext->PSSetSamplers(0, 1, &m_sampleState_Shader);
-
-	return true;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 // 1. Create a particle buffer to send parameters for particle system stream-out shader
 // 2. Create a random texture resource for random function in shader
 // 3. Create a Sample Descriptor for pixel shader or sampling form texture
 bool FireParticalSystemShader::createConstantBuffer_StreamOut(ID3D11Device* device)
 {
-	D3D11_BUFFER_DESC particleBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
+	D3D11_BUFFER_DESC particleBufferDesc;	
 	HRESULT result = true;
-
+	
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
     particleBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	particleBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	particleBufferDesc.ByteWidth = sizeof(WorldMatrixBuffer);
     particleBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     particleBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     particleBufferDesc.MiscFlags = 0;
 	particleBufferDesc.StructureByteStride = 0;
 
+	particleBufferDesc.ByteWidth = sizeof(SOBufferType);
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&particleBufferDesc, NULL, &m_particle_parameter_buffer);
+	result = device->CreateBuffer(&particleBufferDesc, NULL, &m_SO_constant_buffer);
 	if(FAILED(result))
 	{
 		result = false;
@@ -564,6 +647,10 @@ bool FireParticalSystemShader::createConstantBuffer_StreamOut(ID3D11Device* devi
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
@@ -574,18 +661,10 @@ bool FireParticalSystemShader::createConstantBuffer_StreamOut(ID3D11Device* devi
 		return false;
 	}
 	
-	m_FireTexture =  m_ShaderUtility->CreateTextureFromFile(device, L"flare0.dds");
-
 	return true;
 }
 //////////////////////////////////////////////////////////////////////////////
 
-
-void FireParticalSystemShader::ShutdownShader_StreamOut()
-{
-
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 1. Comple Shaders VS, GS for StreamOut Stage (m_vertexShader_Draw|m_geometryShader_Draw|m_PixelShader_Draw)
@@ -609,10 +688,11 @@ bool FireParticalSystemShader::InitializeShader_Draw(ID3D11Device* device, HWND 
 	// Initialize the pointers this function will use to null.
 	errorMessage = 0;
 	vertexShaderBuffer = 0;
+	geometryShaderBuffer = 0;
 	pixelShaderBuffer = 0;
 
     // Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "DrawVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(L"DrawFireParticleShader.hlsl", NULL, NULL, "DrawVS", "vs_5_0", D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 								   &vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -631,7 +711,7 @@ bool FireParticalSystemShader::InitializeShader_Draw(ID3D11Device* device, HWND 
 	}
 
 	  // Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "DrawGS", "gs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(L"DrawFireParticleShader.hlsl", NULL, NULL, "DrawGS", "gs_5_0", D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 								   &geometryShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -650,7 +730,7 @@ bool FireParticalSystemShader::InitializeShader_Draw(ID3D11Device* device, HWND 
 	}
 
     // Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "DrawPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(L"DrawFireParticleShader.hlsl", NULL, NULL, "DrawPS", "ps_5_0", D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 								   &pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -711,18 +791,14 @@ bool FireParticalSystemShader::InitializeShader_Draw(ID3D11Device* device, HWND 
 	pixelShaderBuffer->Release();
 	pixelShaderBuffer = 0;
 	
-	//result = createConstantBuffer_StreamOut(device);
-	/*if(FAILED(result))
+	result = createConstantBuffer_Draw(device);
+	if(FAILED(result))
 	{
 		return false;
-	}*/
+	}
 
 	return true;
 }
-
-
-
-
 
 //////////////////////////////
 // DRAW SHADER FUNCTIONS
@@ -730,6 +806,27 @@ bool FireParticalSystemShader::InitializeShader_Draw(ID3D11Device* device, HWND 
 
 bool FireParticalSystemShader::createConstantBuffer_Draw(ID3D11Device* device)
 {
+	D3D11_BUFFER_DESC worldMatrixBufferDesc;	
+	HRESULT result = true;
+	int size1 = sizeof(WorldMatrixBuffer);
+	int size2 = sizeof(D3DXMATRIX);
+	int size3 = sizeof(XMFLOAT3);
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+    worldMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	worldMatrixBufferDesc.ByteWidth = sizeof(WorldMatrixBuffer);
+    worldMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    worldMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    worldMatrixBufferDesc.MiscFlags = 0;
+	worldMatrixBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&worldMatrixBufferDesc, NULL, &m_world_matrix_buffer);
+	if(FAILED(result))
+	{
+		result = false;
+	}
+
+	m_FireTexture =  m_ShaderUtility->CreateTextureFromFile(device, L"flare0.dds");
 
 	return true;
 }
@@ -765,49 +862,21 @@ bool FireParticalSystemShader::createInputLayoutDesc_Draw(ID3D11Device* device, 
 }
 
 
-bool FireParticalSystemShader::RenderShader_Draw(ID3D11DeviceContext* deviceContext)
+
+
+
+void FireParticalSystemShader::Shutdown()
 {
-	unsigned int strides;
-	unsigned int offsets;
-
-	strides = sizeof(Particle); 	
-
-	// Set the buffer offsets.
-	offsets = 0;
-	
-	//deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGL);
-
-	ID3D11Buffer* bufferArray[1] = {0};
-
-	deviceContext->SOSetTargets(1, bufferArray, 0);
-	//deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	deviceContext->IASetVertexBuffers(0, 1, &m_DrawBuffer, &strides, &offsets);
-	
-	// Set the vertex input layout.
-	//deviceContext->IASetInputLayout(m_layout);
-
-    // Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(m_vertexShader_Draw, NULL, 0);
-	deviceContext->GSSetShader(m_geometryShader_Draw, NULL, 0);
-   // deviceContext->PSSetShader(m_pixelShader, NULL, 0);
-	
-	deviceContext->PSSetShader(m_pixelShader_Draw, NULL, 0);
-	// Set the sampler state in the pixel shader.
-	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
-
-	// Render the triangle.
-	deviceContext->DrawAuto();//(vertexCount, instanceCount, 0, 0);
-	return true;
-}
-
-bool FireParticalSystemShader::SetShaderParameters_Draw(ID3D11DeviceContext*, D3DXMATRIX, D3DXMATRIX, 
-															 D3DXMATRIX, ID3D11ShaderResourceView*)
-{
-	return true;
+	ShutdownShader_StreamOut();
+	ShutdownShader_Draw();
 }
 
 
+void FireParticalSystemShader::ShutdownShader_StreamOut()
+{
+
+
+}
 
 
 
@@ -818,7 +887,78 @@ void FireParticalSystemShader::ShutdownShader_Draw()
 }
 
 
-void FireParticalSystemShader::OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*)
+void FireParticalSystemShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
+	char* compileErrors;
+	unsigned long bufferSize, i;
+	ofstream fout;
 
+
+	// Get a pointer to the error message text buffer.
+	compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+	// Get the length of the message.
+	bufferSize = errorMessage->GetBufferSize();
+
+	// Open a file to write the error message to.
+	fout.open("shader-error.txt");
+
+	// Write out the error message.
+	for(i=0; i<bufferSize; i++)
+	{
+		fout << compileErrors[i];
+	}
+
+	// Close the file.
+	fout.close();
+
+	// Release the error message.
+	errorMessage->Release();
+	errorMessage = 0;
+
+	// Pop a message up on the screen to notify the user to check the text file for compile errors.
+	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
+
+	return;
 }
+
+///////////////////////////////////////////////////////////////////////////
+// Getter and Setter Methods implementaion
+///////////////////////////////////////////////////////////////////////////
+void FireParticalSystemShader::setEmit_Position(XMFLOAT3 position)
+{
+	m_Emit_Position = position;
+}
+
+void FireParticalSystemShader::setCamera_Eye_Position(XMFLOAT3 position)
+{
+	m_EyePosW = position;
+}
+
+	/////////////////////////////////////////////////////////////////////////////////
+	// DEBUG
+//	deviceContext->CopyResource( m_StagingStreamOutBuffer, m_StreamOutBuffer );
+//
+//D3D11_MAPPED_SUBRESOURCE data;
+//deviceContext->Map( m_StagingStreamOutBuffer, 0, D3D11_MAP_READ, 0, &data ) ;
+//
+//	struct GS_OUTPUT
+//	{
+//		D3DXVECTOR3 COLOUR;
+//		D3DXVECTOR3 DOMAIN_SHADER_LOCATION;
+//		D3DXVECTOR3 WORLD_POSITION;
+//	};
+//
+//	Particle *pRaw = reinterpret_cast< Particle* >( data.pData );
+//
+//
+//	/* Work with the pRaw[] array here */
+//	// Consider StringCchPrintf() and OutputDebugString() as simple ways of printing the above struct, or use the debugger and step through.
+//	
+//	deviceContext->Unmap( m_StagingStreamOutBuffer, 0 );
+//
+	//////////////////////////////////////////////////////////////////////////////////
+
+//	swap(m_DrawBuffer, m_StreamOutBuffer);
+
+

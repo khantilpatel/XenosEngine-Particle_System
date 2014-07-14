@@ -100,16 +100,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the texture shader object.
-	//result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the simple shader object.", L"Error", MB_OK);
 		return false;
 	}
-
-		// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, -2.0f, -10.0f);
-
 
 	// Create the particle shader object.
 	m_ParticleShader = new ParticleShaderClass;
@@ -135,7 +131,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the particle system object.
-	//result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"star.dds");
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"star.dds");
 	if(!result)
 	{
 
@@ -153,6 +149,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+
+			// Set the initial position of the camera.
+	m_Camera->SetPosition(0.0f,-8.0f,-10.0f);// -2.0f, -10.0f);
+
+
 	return true;
 }
 
@@ -167,7 +168,7 @@ bool GraphicsClass::UpdateFrame(float frameTime, float totalTime, float posX, fl
 	m_Camera->SetRotation(rotX, rotY, rotZ);
 
 		// Run the frame processing for the particle system.
-//	m_ParticleSystem->UpdateFrame(frameTime, m_D3D->GetDeviceContext());
+	m_ParticleSystem->UpdateFrame((frameTime), m_D3D->GetDeviceContext());
 
 	// Redsfnder the graphics scene.
 	result = Render();
@@ -200,42 +201,45 @@ bool GraphicsClass::Render()
 
 
 			// Turn on alpha blending.
-	//m_D3D->EnableAlphaBlending();
+	m_D3D->EnableAlphaBlending();
 
 		// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	//m_ParticleSystem->Render(m_D3D->GetDeviceContext());
+	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
 
-	//// Render the model using the texture shader.
-	//result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), 
-	//	worldMatrix, viewMatrix, projectionMatrix, m_ParticleSystem->GetTexture());
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	// Render the model using the texture shader.
+	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), 
+		worldMatrix, viewMatrix, projectionMatrix, m_ParticleSystem->GetTexture());
+	if(!result)
+	{
+		return false;
+	}
 
 	
+	m_FireParticleShader->setEmit_Position(XMFLOAT3(-0.26f, -0.6f, 0.21f)); 
 
+	// Emit postion for particals in fire effect
+	
 		// Turn off alpha blending.
-	//m_D3D->DisableAlphaBlending();
+	m_D3D->DisableAlphaBlending();
 
-	//m_D3D->DisableDepthStencilState();
+	m_D3D->DisableDepthStencilState();
 	m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
-	projectionMatrix, m_frameTime, m_TotalTime, m_Camera->GetPosition_XM());
+	projectionMatrix, m_frameTime/1000, m_TotalTime/1000, m_Camera->GetPosition_XM());
 
-	//m_D3D->EnableAdditiveBlending();
-	//m_D3D->NoDepthWriteStencilState();
+	m_D3D->EnableAdditiveBlending();
+	m_D3D->NoDepthWriteStencilState();
+	m_D3D->EnableAlphaBlending();
+	m_FireParticleShader->RenderShader_Draw(m_D3D->GetDeviceContext());
 
-//	m_FireParticleShader->RenderShader_Draw(m_D3D->GetDeviceContext());
-
-	//m_D3D->EnableAlphaBlending();
-	//m_D3D->EnableDepthStencilState();
+	
+	m_D3D->EnableDepthStencilState();
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	//m_Model->Render(m_D3D->GetDeviceContext());
 
 
 
 	// Render the model using the texture shader.
-	//result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
+	///result = m_TextureShader-> Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
 	//	worldMatrix, viewMatrix, projectionMatrix,m_Model->getVertexBuffer(), m_Model->getInstanceBuffer(), 
 	//	m_Model->getStreamOutBuffer(), m_Model->GetTexture());
 

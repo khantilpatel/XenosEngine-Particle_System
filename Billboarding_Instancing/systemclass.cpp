@@ -2,7 +2,8 @@
 // Filename: systemclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "systemclass.h"
-
+#include "ConsoleWindow.h"
+#include <iostream>
 
 SystemClass::SystemClass()
 {
@@ -87,7 +88,7 @@ bool SystemClass::Initialize()
 	// Set the initial position of the viewer to the same as the initial camera position.
 	m_Position->SetPosition(0.0f, 2.0f, -10.0f);
 
-	return true;
+	RedirectIOToConsole();
 
 	return true;
 }
@@ -205,6 +206,9 @@ bool SystemClass::Frame()
 	m_Position->GetRotation(rotX, rotY, rotZ);
 	// Do the frame processing for the graphics object.
 
+	cout<< "PositionClass||X:" <<posX << "||Y:"<<posY <<"||Z:"<<posZ<<"\n";
+
+	cout <<"||"<< "FrameTime:"<< m_Timer->GetTime() << "||GameTime:" << m_Timer->getTotalTime()<<"||\n";
 	result = m_Graphics->UpdateFrame(m_Timer->GetTime(),m_Timer->getTotalTime(), posX, posY, posZ, rotX, rotY, rotZ);
 	if(!result)
 	{

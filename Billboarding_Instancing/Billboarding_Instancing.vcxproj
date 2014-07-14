@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="FireParticalSystemShader.cpp" />
     <ClCompile Include="graphicsclass.cpp" />
@@ -31,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="ConsoleWindow.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="FireParticalSystemShader.h" />
     <ClInclude Include="graphicsclass.h" />
@@ -51,13 +53,25 @@
     <Image Include="seafloor.dds" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FireShader.vs" />
+    <None Include="FireShader.hlsl" />
     <None Include="particle.ps" />
     <None Include="particle.vs" />
     <None Include="simple.ps" />
     <None Include="simple.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="DrawFireParticleShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="GeometryShaderFire.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{00A26749-0957-4968-87E8-E16B54A5E4A3}</ProjectGuid>

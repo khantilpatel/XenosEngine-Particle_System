@@ -23,7 +23,7 @@ public:
 
 	bool Initialize();
 	void Frame();
-
+		float m_frameTime_GPU;
 	float GetTime();
 	float TimerClass::getTotalTime();
 private:
@@ -33,6 +33,7 @@ private:
 	INT64 m_previousTime;
 	INT64 m_currentTime;
 	float m_frameTime;
+
 	float m_totalTime;
 };
 

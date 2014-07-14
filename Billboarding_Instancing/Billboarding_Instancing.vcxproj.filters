@@ -90,6 +90,9 @@
     <ClCompile Include="PositionClass.cpp">
       <Filter>class-framework\utility</Filter>
     </ClCompile>
+    <ClCompile Include="ConsoleWindow.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -140,6 +143,9 @@
     <ClInclude Include="PositionClass.h">
       <Filter>class-framework\utility</Filter>
     </ClInclude>
+    <ClInclude Include="ConsoleWindow.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="texture.vs">
@@ -160,7 +166,7 @@
     <None Include="simple.ps">
       <Filter>shaders</Filter>
     </None>
-    <None Include="FireShader.vs">
+    <None Include="FireShader.hlsl">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -168,5 +174,13 @@
     <Image Include="seafloor.dds">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="GeometryShaderFire.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawFireParticleShader.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

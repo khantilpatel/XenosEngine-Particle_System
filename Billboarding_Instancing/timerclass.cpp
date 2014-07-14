@@ -29,7 +29,7 @@ bool TimerClass::Initialize()
 	}
 
 	// Find out how many times the frequency counter ticks every millisecond.
-	m_ticksPerMs = (float)(m_frequency / 1000);
+	m_ticksPerMs = (float)((m_frequency)/1000);
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&m_startTime);
 
@@ -49,7 +49,9 @@ void TimerClass::Frame()
 
 	timeDiffreneceTotal = (float)(m_currentTime - m_startTime);
 
-	m_frameTime = timeDifference / m_ticksPerMs;
+	m_frameTime = timeDifference / (m_ticksPerMs);
+
+	//m_frameTime_GPU = timeDifference / m_ticksPerMs;
 
 	m_totalTime = timeDiffreneceTotal / m_ticksPerMs;
 
