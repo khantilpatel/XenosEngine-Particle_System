@@ -29,7 +29,7 @@ bool SystemClass::Initialize()
 {
 	int screenWidth, screenHeight;
 	bool result;
-
+	RedirectIOToConsole();
 
 	// Initialize the width and height of the screen to zero before sending the variables into the function.
 	screenWidth = 0;
@@ -88,7 +88,7 @@ bool SystemClass::Initialize()
 	// Set the initial position of the viewer to the same as the initial camera position.
 	m_Position->SetPosition(0.0f, 2.0f, -10.0f);
 
-	RedirectIOToConsole();
+	
 
 	return true;
 }

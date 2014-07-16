@@ -52,9 +52,14 @@ public:
 	void DisableAlphaBlending();
 	void EnableAdditiveBlending();
 
-	void D3DClass::EnableDepthStencilState();
-	void D3DClass::DisableDepthStencilState();
-	void D3DClass::NoDepthWriteStencilState();
+	void EnableDepthStencilState();
+	void DisableDepthStencilState();
+	void NoDepthWriteStencilState();
+	void SetDepthStencilState_Less_Equal();
+
+	void SetRasterState_Nocull();
+	void SetRasterState_Default();
+
 
 private:
 	bool m_vsync_enabled;
@@ -68,8 +73,13 @@ private:
 	ID3D11DepthStencilState* m_depthEnableStencilState;
 	ID3D11DepthStencilState* m_depthDisableStencilState;
 	ID3D11DepthStencilState* m_depthNoWriteStencilState;
+	ID3D11DepthStencilState* m_depthEnableStencilState_Less_Equal;
+
 	ID3D11DepthStencilView* m_depthStencilView;
+	
+
 	ID3D11RasterizerState* m_rasterState;
+	ID3D11RasterizerState* m_rasterState_nocull;
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;

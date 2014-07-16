@@ -1,7 +1,7 @@
 #include "FireParticalSystemShader.h"
 #include <iostream>
 
-LPCWSTR STR_CLASSNAME = L"FireParticalSystemShader";
+const LPCWSTR STR_CLASSNAME = L"FireParticalSystemShader";
 FireParticalSystemShader::FireParticalSystemShader()
 {
 	m_initBuffer = 0;

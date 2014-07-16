@@ -17,7 +17,8 @@
 #include "particleshaderclass.h"
 #include "particlesystemclass.h"
 #include "FireParticalSystemShader.h"
-
+#include "RainParticleSystem.h"
+#include "SkyBox.h"
 /////////////
 // GLOBALS //
 /////////////
@@ -57,6 +58,9 @@ private:
 	ParticleSystemClass* m_ParticleSystem;
 
 	FireParticalSystemShader* m_FireParticleShader;
+	RainParticleSystem* m_RainParticleSystem;
+
+	SkyBox* m_skyBox;
 };
 
 #endif

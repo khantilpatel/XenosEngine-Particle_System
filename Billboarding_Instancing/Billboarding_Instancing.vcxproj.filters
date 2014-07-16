@@ -37,6 +37,15 @@
     <Filter Include="class-modules\advanced-particle_system">
       <UniqueIdentifier>{5d0b8250-a63c-4679-976b-dd75cc0461e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="class-shaders\Particle Effects">
+      <UniqueIdentifier>{c2746664-cbcd-4f9d-b001-00737a10e621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders\ParticleEffects">
+      <UniqueIdentifier>{50ab1be4-b602-4f60-aa66-75a3cadc0dd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="class-framework\utility\skybox">
+      <UniqueIdentifier>{fc35d960-6dbd-49ad-9939-888fc26e62fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -78,9 +87,6 @@
     <ClCompile Include="SimpleShaderClass.cpp">
       <Filter>class-shaders</Filter>
     </ClCompile>
-    <ClCompile Include="FireParticalSystemShader.cpp">
-      <Filter>class-shaders</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderUtility.cpp">
       <Filter>class-framework\utility</Filter>
     </ClCompile>
@@ -92,6 +98,21 @@
     </ClCompile>
     <ClCompile Include="ConsoleWindow.cpp">
       <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="FireParticalSystemShader.cpp">
+      <Filter>class-shaders\Particle Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="RainParticleSystem.cpp">
+      <Filter>class-shaders\Particle Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>class-framework\utility\skybox</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryGenerator.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dUtil.cpp">
+      <Filter>class-framework\utility\skybox</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -131,9 +152,6 @@
     <ClInclude Include="SimpleShaderClass.h">
       <Filter>class-shaders</Filter>
     </ClInclude>
-    <ClInclude Include="FireParticalSystemShader.h">
-      <Filter>class-shaders</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderUtility.h">
       <Filter>class-framework\utility</Filter>
     </ClInclude>
@@ -145,6 +163,21 @@
     </ClInclude>
     <ClInclude Include="ConsoleWindow.h">
       <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="FireParticalSystemShader.h">
+      <Filter>class-shaders\Particle Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="RainParticleSystem.h">
+      <Filter>class-shaders\Particle Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>class-framework\utility\skybox</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryGenerator.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dUtil.h">
+      <Filter>class-framework\utility\skybox</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -167,7 +200,7 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="FireShader.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>shaders\ParticleEffects</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -176,10 +209,25 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="GeometryShaderFire.hlsl">
-      <Filter>shaders</Filter>
+    <FxCompile Include="RainGeometryShader.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
     </FxCompile>
     <FxCompile Include="DrawFireParticleShader.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="RainPixelShader.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="RainTestGeometryShader.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="GeometryShaderFire.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="GeometryShaderFireTest.hlsl">
+      <Filter>shaders\ParticleEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyPixelShader.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>

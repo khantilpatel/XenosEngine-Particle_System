@@ -294,10 +294,24 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+
+
 	depthStencilDesc.DepthEnable = true;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	// Create the depth stencil state.
 	result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthNoWriteStencilState);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Set up the description of the stencil state.
+	depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+		// Create the depth stencil state.
+	result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthEnableStencilState_Less_Equal);
 	if(FAILED(result))
 	{
 		return false;
@@ -317,6 +331,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	{
 		return false;
 	}
+
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
@@ -340,8 +355,18 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+	// Create the rasterizer state with no culling.
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState_nocull);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	// Now set the rasterizer state.
 	m_deviceContext->RSSetState(m_rasterState);
+
+	
 	
 	// Setup the viewport for rendering.
     viewport.Width = (float)screenWidth;
@@ -638,3 +663,19 @@ void D3DClass::EnableAdditiveBlending()
 {
 	m_deviceContext->OMSetDepthStencilState(m_depthNoWriteStencilState, 1);
 }
+
+void D3DClass::SetDepthStencilState_Less_Equal()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthEnableStencilState_Less_Equal, 1);
+}
+
+void D3DClass::SetRasterState_Default()
+{
+	m_deviceContext->RSSetState(m_rasterState);
+}
+
+void D3DClass::SetRasterState_Nocull()
+{
+	m_deviceContext->RSSetState(m_rasterState_nocull);
+}
+
