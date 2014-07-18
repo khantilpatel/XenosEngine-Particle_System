@@ -114,6 +114,12 @@
     <ClCompile Include="d3dUtil.cpp">
       <Filter>class-framework\utility\skybox</Filter>
     </ClCompile>
+    <ClCompile Include="main1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShaderSortMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -229,6 +235,12 @@
     </FxCompile>
     <FxCompile Include="SkyPixelShader.hlsl">
       <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicCompute11_new.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ComputeShaderSort11.hlsl">
+      <Filter>Source Files</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

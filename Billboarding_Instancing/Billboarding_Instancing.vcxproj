@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="ComputeShaderSortMain.cpp" />
     <ClCompile Include="ConsoleWindow.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
@@ -20,6 +21,7 @@
     <ClCompile Include="graphicsclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main1.cpp" />
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="particleshaderclass.cpp" />
@@ -70,6 +72,14 @@
     <None Include="texture.vs" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="BasicCompute11_new.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ComputeShaderSort11.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="DrawFireParticleShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
