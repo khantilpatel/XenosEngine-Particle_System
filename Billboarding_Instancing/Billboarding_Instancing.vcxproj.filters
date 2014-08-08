@@ -46,6 +46,9 @@
     <Filter Include="class-framework\utility\skybox">
       <UniqueIdentifier>{fc35d960-6dbd-49ad-9939-888fc26e62fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="class-AI">
+      <UniqueIdentifier>{77da4b9b-de1d-42a2-b60c-faf370010148}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -120,6 +123,21 @@
     <ClCompile Include="ComputeShaderSortMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AStar_Type1_ShaderClass.cpp">
+      <Filter>class-AI</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShaderHelperClass.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureUtility.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtility.cpp">
+      <Filter>class-framework\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="AStar_Type2_ShaderClass.cpp">
+      <Filter>class-AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -185,6 +203,21 @@
     <ClInclude Include="d3dUtil.h">
       <Filter>class-framework\utility\skybox</Filter>
     </ClInclude>
+    <ClInclude Include="AStar_Type1_ShaderClass.h">
+      <Filter>class-AI</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShaderHelperClass.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureUtility.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtility.h">
+      <Filter>class-framework\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="AStar_Type2_ShaderClass.h">
+      <Filter>class-AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="texture.vs">
@@ -241,6 +274,12 @@
     </FxCompile>
     <FxCompile Include="ComputeShaderSort11.hlsl">
       <Filter>Source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="AStar_Type1_ComputeShader.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="AStar_Type2_ComputeShader.hlsl">
+      <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

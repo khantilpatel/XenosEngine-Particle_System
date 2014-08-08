@@ -19,6 +19,10 @@ GraphicsClass::GraphicsClass()
 	m_RainParticleSystem = 0;
 
 	m_skyBox = 0;
+
+	m_AStar_Type1_ShaderClass = 0;
+	m_AStar_Type2_ShaderClass = 0;
+
 }
 
 
@@ -176,7 +180,23 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f,-8.0f,-10.0f);// -2.0f, -10.0f);
 
+	m_AStar_Type1_ShaderClass = new AStar_Type1_ShaderClass;
+	result = m_AStar_Type1_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd);
+	if (!result)
+	{
 
+		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
+		return false;
+	}
+
+	m_AStar_Type2_ShaderClass = new AStar_Type2_ShaderClass;
+	result = m_AStar_Type2_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd);
+	if (!result)
+	{
+
+		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
+		return false;
+	}
 	return true;
 }
 
@@ -239,43 +259,51 @@ bool GraphicsClass::Render()
 	//}	
 	//m_D3D->DisableAlphaBlending();
 	///////////////////////////////////////////////////////////////////
-
+	// RENDER SKYBOX
 	/////////////////////////////////////////////////////////////////////
-
 	m_D3D->SetDepthStencilState_Less_Equal();
 	m_D3D->SetRasterState_Nocull();
-
 	m_skyBox->RenderShader(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
 	projectionMatrix, m_Camera->GetPosition_XM());
-
 	m_D3D->EnableDepthStencilState();
 	m_D3D->SetRasterState_Default();
+	/////////////////////////////////////////////////////////////////////
 
+	///////////////////////////////////////////////////////////////////
+	// RENDER FIRE PARTICLES
+	/////////////////////////////////////////////////////////////////////
 	// Render Fire Particle System
-	m_FireParticleShader->setEmit_Position(XMFLOAT3(-0.26f, -0.6f, -10.0f)); 	
+	//m_FireParticleShader->setEmit_Position(XMFLOAT3(-0.26f, -0.6f, -10.0f)); 	
+	//m_D3D->DisableDepthStencilState();
+	//m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
+	//projectionMatrix, m_frameTime/1000, m_TotalTime/1000, m_Camera->GetPosition_XM());
+	//m_D3D->EnableAdditiveBlending();
+	//m_D3D->NoDepthWriteStencilState();
+	//m_D3D->EnableAlphaBlending();
+	//m_FireParticleShader->RenderShader_Draw(m_D3D->GetDeviceContext());
+	//m_D3D->EnableDepthStencilState();
+	/////////////////////////////////////////////////////////////////////
 
-	m_D3D->DisableDepthStencilState();
-	m_FireParticleShader->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
-	projectionMatrix, m_frameTime/1000, m_TotalTime/1000, m_Camera->GetPosition_XM());
-
-	m_D3D->EnableAdditiveBlending();
-	m_D3D->NoDepthWriteStencilState();
-	m_D3D->EnableAlphaBlending();
-	m_FireParticleShader->RenderShader_Draw(m_D3D->GetDeviceContext());
-	m_D3D->EnableDepthStencilState();
+	///////////////////////////////////////////////////////////////////
+	// RENDER RAIN PARTICLES
+	/////////////////////////////////////////////////////////////////////
+	//m_RainParticleSystem->setEmit_Position(m_Camera->GetPosition_XM());
+	//m_RainParticleSystem->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
+	//projectionMatrix, m_frameTime/1000, m_TotalTime/1000, m_Camera->GetPosition_XM());
+	//m_RainParticleSystem->RenderShader_Draw(m_D3D->GetDeviceContext());
 	/////////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////////
-	// Render Rain Particle System
-	m_RainParticleSystem->setEmit_Position(m_Camera->GetPosition_XM());
-
-	m_RainParticleSystem->Render(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
-	projectionMatrix, m_frameTime/1000, m_TotalTime/1000, m_Camera->GetPosition_XM());
-
-	m_RainParticleSystem->RenderShader_Draw(m_D3D->GetDeviceContext());
+	// AI A*- Type-1 RENDERING
+	/////////////////////////////////////////////////////////////////////
+	//m_AStar_Type1_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
 	/////////////////////////////////////////////////////////////////////
 
-
+	/////////////////////////////////////////////////////////////////////
+	// AI A*- Type-2 RENDERING
+	/////////////////////////////////////////////////////////////////////
+	m_AStar_Type2_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
+	/////////////////////////////////////////////////////////////////////
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	//m_Model->Render(m_D3D->GetDeviceContext());
 
@@ -288,10 +316,10 @@ bool GraphicsClass::Render()
 
 	//m_SimpleShader->Render(m_D3D->GetDeviceContext(), m_Model->GetVertexCount(), m_Model->GetInstanceCount(),
 	//		m_FireParticleShader->m_DrawBuffer, m_Model->GetTexture());
-	if(!result)
-	{
-		return false;
-	}
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();
@@ -357,6 +385,26 @@ void GraphicsClass::Shutdown()
 		m_D3D = 0;
 	}
 
+	if (m_AStar_Type1_ShaderClass)
+	{
+		m_AStar_Type1_ShaderClass->Shutdown();
+		delete m_AStar_Type1_ShaderClass;
+		m_AStar_Type1_ShaderClass = 0;
+	}
+
+	if (m_AStar_Type2_ShaderClass)
+	{
+		m_AStar_Type2_ShaderClass->Shutdown();
+		delete m_AStar_Type2_ShaderClass;
+		m_AStar_Type2_ShaderClass = 0;
+	}
+	
+	if (m_skyBox)
+	{
+		m_skyBox->Shutdown();
+		delete m_skyBox;
+		m_skyBox = 0;
+	}
 	return;
 }
 

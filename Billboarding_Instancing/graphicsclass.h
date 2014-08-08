@@ -19,6 +19,8 @@
 #include "FireParticalSystemShader.h"
 #include "RainParticleSystem.h"
 #include "SkyBox.h"
+#include "AStar_Type1_ShaderClass.h"
+#include "AStar_Type2_ShaderClass.h"
 /////////////
 // GLOBALS //
 /////////////
@@ -61,6 +63,9 @@ private:
 	RainParticleSystem* m_RainParticleSystem;
 
 	SkyBox* m_skyBox;
+
+	AStar_Type1_ShaderClass* m_AStar_Type1_ShaderClass;
+	AStar_Type2_ShaderClass* m_AStar_Type2_ShaderClass;
 };
 
 #endif

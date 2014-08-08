@@ -42,6 +42,7 @@ public:
 	void RenderShader(ID3D11DeviceContext*,D3DXMATRIX , 
 									  D3DXMATRIX , D3DXMATRIX ,
 									  XMFLOAT3 );
+	void Shutdown();
 
 private:
 	
