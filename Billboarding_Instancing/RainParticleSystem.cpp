@@ -513,25 +513,66 @@ bool RainParticleSystem::InitVertextBuffers(ID3D11Device* device)
 	// 1. m_initBuffer
 	///////////////////////////////////////////////////////////////////////
 
-	Particle* particle;
+	Particle* particle[5];
 	D3D11_BUFFER_DESC particleBufferDesc;
     D3D11_SUBRESOURCE_DATA particleDataResource;
 	HRESULT result;
 
 	// Set the number of vertices in the vertex array.
-	m_vertexCount = 1;
+	m_vertexCount = 5;
 
 	// Create the vertex array.
-	particle  = new Particle;	
+	particle[0]  = new Particle;	
 	// The initial particle emitter has type 0 and age 0.  The rest
 	// of the particle attributes do not apply to an emitter.
 	//ZeroMemory(&particle, sizeof(Particle));
-	particle->Size =  XMFLOAT2(0.0,10.0);
-	particle->InitialVel = XMFLOAT3(3.0,0.0,0.0);
-	particle->InitialPos = XMFLOAT3(12.0,32.0,0.0);
-	particle->Age  = 0.0f;
-	particle->Type = 0; 
+	particle[0] ->Size =  XMFLOAT2(0.0,10.0);
+	particle[0] ->InitialVel = XMFLOAT3(3.0,0.0,0.0);
+	particle[0] ->InitialPos = XMFLOAT3(12.0,32.0,0.0);
+	particle[0] ->Age  = 0.0f;
+	particle[0]->Type = 0; 
 	
+		particle[1]   = new Particle;	
+	// The initial particle emitter has type 0 and age 0.  The rest
+	// of the particle attributes do not apply to an emitter.
+	//ZeroMemory(&particle, sizeof(Particle));
+	particle[1] ->Size =  XMFLOAT2(0.0,10.0);
+	particle[1] ->InitialVel = XMFLOAT3(3.0,0.0,0.0);
+	particle[1] ->InitialPos = XMFLOAT3(12.0,32.0,0.0);
+	particle[1] ->Age  = 0.0f;
+	particle[1] ->Type = 0; 
+
+		particle[2]   = new Particle;	
+	// The initial particle emitter has type 0 and age 0.  The rest
+	// of the particle attributes do not apply to an emitter.
+	//ZeroMemory(&particle, sizeof(Particle));
+	particle[2] ->Size =  XMFLOAT2(0.0,10.0);
+	particle[2]->InitialVel = XMFLOAT3(3.0,0.0,0.0);
+	particle[2]->InitialPos = XMFLOAT3(12.0,32.0,0.0);
+	particle[2]->Age  = 0.0f;
+	particle[2]->Type = 0; 
+
+		particle[3]  = new Particle;	
+	// The initial particle emitter has type 0 and age 0.  The rest
+	// of the particle attributes do not apply to an emitter.
+	//ZeroMemory(&particle, sizeof(Particle));
+	particle[3]->Size =  XMFLOAT2(0.0,10.0);
+	particle[3]->InitialVel = XMFLOAT3(3.0,0.0,0.0);
+	particle[3]->InitialPos = XMFLOAT3(12.0,32.0,0.0);
+	particle[3]->Age  = 0.0f;
+	particle[3]->Type = 0; 
+
+	particle[4]  = new Particle;	
+	// The initial particle emitter has type 0 and age 0.  The rest
+	// of the particle attributes do not apply to an emitter.
+	//ZeroMemory(&particle, sizeof(Particle));
+	particle[4]->Size =  XMFLOAT2(0.0,10.0);
+	particle[4]->InitialVel = XMFLOAT3(3.0,0.0,0.0);
+	particle[4]->InitialPos = XMFLOAT3(12.0,32.0,0.0);
+	particle[4]->Age  = 0.0f;
+	particle[4]->Type = 0; 
+
+
     particleBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     particleBufferDesc.ByteWidth = sizeof(Particle) * m_vertexCount;
     particleBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -540,7 +581,7 @@ bool RainParticleSystem::InitVertextBuffers(ID3D11Device* device)
 	particleBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-    particleDataResource.pSysMem = particle;
+    particleDataResource.pSysMem = *particle;
 	particleDataResource.SysMemPitch = 0;
 	particleDataResource.SysMemSlicePitch = 0;
 
@@ -552,8 +593,8 @@ bool RainParticleSystem::InitVertextBuffers(ID3D11Device* device)
 	}
 	
 	// Release the vertex array now that the vertex buffer has been created and loaded.
-	delete particle;	
-	particle = 0;
+//	delete particle;	
+	//particle = 0;
 
 	///////////////////////////////////////////////////////////////////////
 	// Create Stream-out buffer instance without binding any data

@@ -39,7 +39,7 @@ float3 RandVec3(float offset)
 		return v;
 }
 
-[maxvertexcount(6)]
+[maxvertexcount(46)]
 void main(
 	point GSOutput input[1], 
 	inout PointStream< GSOutput > output
@@ -50,11 +50,11 @@ void main(
 	{	
 		if( input[0].Age > 0.002f )
 		{
-			for(uint i = 0; i < 5; ++i)
+			for(uint i = 0; i < 40; ++i)
 			{
 
-				float3 vRandom = RandVec3((float)i);
-					vRandom.y = 20.0f;
+				float3 vRandom = 35.0f*RandVec3((float)i/50.0f);
+				vRandom.y = 500.0f;
 
 				GSOutput p;
 				p.InitialPosW = gEyePosition.xyz + vRandom;			
@@ -62,7 +62,7 @@ void main(
 				p.SizeW       = float2(1.0f, 1.0f);
 				p.Age         = 0.0f;
 				p.Type        = PT_FLARE;
-				output.Append(p);
+				output.Append(p);	
 
 			}
 			// reset the time to emit

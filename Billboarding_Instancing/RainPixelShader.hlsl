@@ -53,7 +53,7 @@ VertexOut DrawVS(Particle vin)
 	float t = vin.Age;
 	
 	// constant acceleration equation
-	vout.PosW = 0.5f*t*t*float3(-1.0f, -9.8f, 0.0f) + t*vin.InitialVelW +vin.InitialPosW;
+	vout.PosW = 150.0f*t*t*float3(0.0f, -1.0f, 0.0f) + t*vin.InitialVelW +vin.InitialPosW;
 	
 	vout.Type  = vin.Type;
 	
@@ -76,7 +76,7 @@ void DrawGS(point VertexOut gin[1],
 	{
 		// Slant line in acceleration direction.
 		float3 p0 = gin[0].PosW ;
-		float3 p1 = gin[0].PosW + 0.07f*float3(-1.0f, -9.8f, 0.0f) ;
+		float3 p1 = gin[0].PosW + 3.0f*float3(0.0f , -1.0f, 0.0f) ;
 		
 		GeoOut v0;
 		v0.PosH = mul(float4(p0, 1.0f), gViewProj);

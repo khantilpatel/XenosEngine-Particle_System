@@ -23,9 +23,9 @@ cbuffer cbPerFrame
 
 float3 RandUnitVec3(float offset)
 {
-	float u = (gGameTimeT + offset);
+	//float u = (gGameTimeT + offset);
 	
-	float3 v = gRandomTex.SampleLevel(samLinear, u, 0).xyz;
+	float3 v = gRandomTex.SampleLevel(samLinear, 0.0f, 0).xyz;
 	
 	return normalize(v);
 }
@@ -62,7 +62,7 @@ void main(
 				vRandom.y = 20.0f;
 			
 				GSOutput p;
-				p.InitialPosW = gEyePosWT.xyz + vRandom;
+				p.InitialPosW = gEyePosWT.xyz ;//+ vRandom;
 				float3 pos = gEyePosWT;
 					pos.z = pos.z + 10;
 				p.InitialPosW = gEyePosWT;

@@ -2,9 +2,9 @@
 #define PT_FLARE 1
 
 
-//Texture1D gRandomTex;
+Texture1D gRandomTex;
 
-//SamplerState samLinear;
+SamplerState samLinear;
 
 cbuffer cbPerFrame
 {
@@ -24,23 +24,23 @@ struct Particle
 };
 
 
-//float3 RandUnitVec3(float offset)
-//{
-//	float u = (gGameTime + offset);
-//	
-//	float3 v = gRandomTex.SampleLevel(samLinear, u, 0).xyz;
-//	
-//	return normalize(v);
-//}
+float3 RandUnitVec3(float offset)
+{
+	float u = (gGameTime + offset);
+	
+	float3 v = gRandomTex.SampleLevel(samLinear, u, 0).xyz;
+	
+	return normalize(v);
+}
 
-//float3 RandVec3(float offset)
-//{
-//	float u = (gGameTime + offset);
-//	
-//	float3 v = gRandomTex.SampleLevel(samLinear, u, 0).xyz;
-//	
-//	return v;
-//}
+float3 RandVec3(float offset)
+{
+	float u = (gGameTime + offset);
+	
+	float3 v = gRandomTex.SampleLevel(samLinear, u, 0).xyz;
+	
+	return v;
+}
 
 [maxvertexcount(6)]
 void main(
@@ -60,11 +60,11 @@ void main(
 			for(int i = 0; i < 5; ++i)
 			{
 
-				//float3 vRandom = 35.0f*RandVec3((float)i/5.0f);
-				//vRandom.y = 20.0f;
+				float3 vRandom = 35.0f*RandVec3((float)i/5.0f);
+				vRandom.y = 20.0f;
 			
 				Particle p;
-				p.InitialPosW.x = gEmitPosWT.x ;// + vRandom;
+				p.InitialPosW.x = gEmitPosWT.x; // + vRandom;
 				p.InitialPosW.y = gEmitPosWT.y;
 				p.InitialPosW.z = gEmitPosWT.z;
 				float3 pos = gEmitPosWT;

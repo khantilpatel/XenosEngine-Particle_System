@@ -13,9 +13,9 @@ ID3D11ShaderResourceView* ShaderUtility::CreateRandomTexture1DSRV(ID3D11Device* 
 
 	for(int i = 0; i < 1024; ++i)
 	{
-		randomValues[i].x = MathHelper::RandF(-1.0f, 100.0f);
-		randomValues[i].y = MathHelper::RandF(-1.0f, 100.0f);
-		randomValues[i].z = MathHelper::RandF(-1.0f, 9.0f);
+		randomValues[i].x = MathHelper::RandF(-50.0f, 50.0f);
+		randomValues[i].y = MathHelper::RandF(-50.0f, 50.0f);
+		randomValues[i].z = MathHelper::RandF(-50.0f, 50.0f);
 		randomValues[i].w = MathHelper::RandF(-1.0f, 50.0f);
 	}
 

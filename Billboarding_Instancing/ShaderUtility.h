@@ -26,6 +26,8 @@ public:
 	
 	ID3D11ShaderResourceView* CreateRandomTexture1DSRV(ID3D11Device* device);
 
+
+
 	ID3D11ShaderResourceView* CreateTextureFromFile(ID3D11Device* device, WCHAR* filename);
 
 };
