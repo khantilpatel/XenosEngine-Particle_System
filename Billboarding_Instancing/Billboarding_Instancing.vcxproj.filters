@@ -138,6 +138,9 @@
     <ClCompile Include="AStar_Type2_ShaderClass.cpp">
       <Filter>class-AI</Filter>
     </ClCompile>
+    <ClCompile Include="AStar_Type3_ShaderClass.cpp">
+      <Filter>class-AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -218,6 +221,9 @@
     <ClInclude Include="AStar_Type2_ShaderClass.h">
       <Filter>class-AI</Filter>
     </ClInclude>
+    <ClInclude Include="AStar_Type3_ShaderClass.h">
+      <Filter>class-AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="texture.vs">
@@ -242,6 +248,7 @@
       <Filter>shaders\ParticleEffects</Filter>
     </None>
     <None Include="..\..\GPGPU-AI\Engine\Activity1.nvact" />
+    <None Include="GPGPU-AI.nvact" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="seafloor.dds">

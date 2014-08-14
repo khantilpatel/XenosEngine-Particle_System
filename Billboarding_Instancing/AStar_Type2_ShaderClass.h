@@ -86,6 +86,7 @@ class AStar_Type2_ShaderClass
 		int cost;
 		int G_cost;
 		int pqId;
+		int H_cost;
 	};
 
 	struct Agent

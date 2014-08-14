@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "AStar_Type1_ShaderClass.h"
 #include "AStar_Type1_ComputeShaderCompiled.h"
+#include "ConsoleWindow.h"
 
 AStar_Type1_ShaderClass::AStar_Type1_ShaderClass()
 {
@@ -283,12 +284,17 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	//// This is also a common trick to debug CS programs.
 	//p1 = (int*)MappedResource1.pData;
 
-	//int nodes1[NUM_OPENLIST_COUNT];
-	//for (int i = 0; i < NUM_OPENLIST_COUNT; i++)
+	//int nodes1[64];
 
+	////int  *nodes1;
+	////nodes1 = new (nothrow)int[NUM_OPENLIST_COUNT];
+
+	//for (int i = 0; i < 64; i++)
 	//{
+	//	cout << "OpenList Content:" << i << ":" << p1[i] << "\n";
 	//	nodes1[i] = p1[i];
 	//}
+
 	//deviceContext->Unmap(debugbuf1, 0);
 
 	//debugbuf1->Release();
@@ -303,12 +309,16 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	// This is also a common trick to debug CS programs.
 	gridNodeListGPU = (int7*)MappedResource2.pData;
 
-	//int7 nodes2[NUM_OPENLIST_COUNT];
-	//for (int i = 0; i < NUM_OPENLIST_COUNT; i++)
-	//{
-	//	nodes2[i] = gridNodeListGPU[i];
-	//}
-	//deviceContext->Unmap(debugbuf2, 0);
+	int7 nodes2[65];
+	for (int i = 0; i < 64; i++)
+	{
+		
+		nodes2[i] = gridNodeListGPU[i];
+
+		cout << "GridNodeListOut Content:" << i << ":F_COST: " << gridNodeListGPU[i].cost << "= H_COST:" << gridNodeListGPU[i].H_cost << "+ G_COST:" <<
+			gridNodeListGPU[i].G_cost << " Parent:" << gridNodeListGPU[i].parentId << "\n";
+	}
+	deviceContext->Unmap(debugbuf2, 0);
 
 	debugbuf2->Release();
 	debugbuf2 = 0;
