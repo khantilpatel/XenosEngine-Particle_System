@@ -184,7 +184,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	result = m_AStar_Type1_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd);
 	if (!result)
 	{
-
 		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
 		return false;
 	}
@@ -261,12 +260,12 @@ bool GraphicsClass::Render()
 	///////////////////////////////////////////////////////////////////
 	// RENDER SKYBOX
 	/////////////////////////////////////////////////////////////////////
-	m_D3D->SetDepthStencilState_Less_Equal();
+	/*m_D3D->SetDepthStencilState_Less_Equal();
 	m_D3D->SetRasterState_Nocull();
 	m_skyBox->RenderShader(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
 	projectionMatrix, m_Camera->GetPosition_XM());
 	m_D3D->EnableDepthStencilState();
-	m_D3D->SetRasterState_Default();
+	m_D3D->SetRasterState_Default();*/
 	/////////////////////////////////////////////////////////////////////
 
 	///////////////////////////////////////////////////////////////////

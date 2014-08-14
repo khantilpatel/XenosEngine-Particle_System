@@ -73,6 +73,7 @@
     <Image Include="seafloor.dds" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\GPGPU-AI\Engine\Activity1.nvact" />
     <None Include="FireShader.hlsl" />
     <None Include="particle.ps" />
     <None Include="particle.vs" />

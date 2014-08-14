@@ -241,6 +241,7 @@
     <None Include="FireShader.hlsl">
       <Filter>shaders\ParticleEffects</Filter>
     </None>
+    <None Include="..\..\GPGPU-AI\Engine\Activity1.nvact" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="seafloor.dds">

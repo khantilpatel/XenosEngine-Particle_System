@@ -23,10 +23,13 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 class AStar_Type2_ShaderClass
 {
-	static const int NUM_AGENTS = 1;
+	static const int NUM_AGENTS = 4096;
 	static const int MAP_DIMENSIONS = 8;
 	static const int NUM_OPENLIST_COUNT = NUM_AGENTS * (MAP_DIMENSIONS * MAP_DIMENSIONS);
-	static const int NUM_GRID_BLOCK_X = 1;
+	static const int NUM_GRID_BLOCK_X = 64;
+	static const int DISPATCH_X = 64;
+	static const int DISPATCH_Y = 64;
+
 	struct VertexType
 	{
 		D3DXVECTOR4 position;

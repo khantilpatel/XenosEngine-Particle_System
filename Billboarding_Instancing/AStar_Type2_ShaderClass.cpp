@@ -226,8 +226,8 @@ bool AStar_Type2_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 
 
 	AStarParameters parameters;
-	parameters.MAP_DIMENSIONS = 8; // Like for 8x8 put 8 they are always semetric
-	parameters.NUM_GRID_BLOCK_X = 2;
+	parameters.MAP_DIMENSIONS = MAP_DIMENSIONS; // Like for 8x8 put 8 they are always semetric
+	parameters.NUM_GRID_BLOCK_X = NUM_GRID_BLOCK_X;
 	m_computeshader_helper->CreateConstantBuffer(device, sizeof(AStarParameters), 1, &parameters, &m_BufConstantParameters);
 	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(int), NUM_OPENLIST_COUNT, nullptr, &m_Buffer_OpenList);
 	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(int7), NUM_OPENLIST_COUNT, nullptr, &m_Buffer_GridNodeListOut);
@@ -258,7 +258,7 @@ bool AStar_Type2_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	//deviceContext->CSSetSamplers(0,1, &m_sampleState);
 	//time_t start, end;
 	//time(&start);
-	deviceContext->Dispatch(1, 1, 1);
+	deviceContext->Dispatch(DISPATCH_X, DISPATCH_Y, 1);
 	//time(&end);
 	//	double dif = difftime(end, start);
 	//printf("Elasped time is %.2lf seconds.", dif);
@@ -294,100 +294,100 @@ bool AStar_Type2_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	//debugbuf1->Release();
 	//debugbuf1 = 0;
 	/////////////////////////////////////////////////////////////////////////////
-	ID3D11Buffer* debugbuf2 = m_computeshader_helper->CreateAndCopyToDebugBuf(device, deviceContext, m_Buffer_GridNodeListOut);
+	/*ID3D11Buffer* debugbuf2 = m_computeshader_helper->CreateAndCopyToDebugBuf(device, deviceContext, m_Buffer_GridNodeListOut);
 	D3D11_MAPPED_SUBRESOURCE MappedResource2;
 	int7 *gridNodeListGPU;
-	deviceContext->Map(debugbuf2, 0, D3D11_MAP_READ, 0, &MappedResource2);
+	deviceContext->Map(debugbuf2, 0, D3D11_MAP_READ, 0, &MappedResource2);*/
 
 	// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
 	// This is also a common trick to debug CS programs.
-	gridNodeListGPU = (int7*)MappedResource2.pData;
+	//gridNodeListGPU = (int7*)MappedResource2.pData;
 
-	//int7 nodes2[NUM_OPENLIST_COUNT];
-	//for (int i = 0; i < NUM_OPENLIST_COUNT; i++)
-	//{
-	//	nodes2[i] = gridNodeListGPU[i];
-	//}
-	//deviceContext->Unmap(debugbuf2, 0);
+	////int7 nodes2[NUM_OPENLIST_COUNT];
+	////for (int i = 0; i < NUM_OPENLIST_COUNT; i++)
+	////{
+	////	nodes2[i] = gridNodeListGPU[i];
+	////}
+	////deviceContext->Unmap(debugbuf2, 0);
 
-	debugbuf2->Release();
-	debugbuf2 = 0;
+	//debugbuf2->Release();
+	//debugbuf2 = 0;
 	/////////////////////////////////////////////////////////////////////////
-	ID3D11Buffer* debugbuf3 = m_computeshader_helper->CreateAndCopyToDebugBuf(device, deviceContext, m_Buffer_SearchResult);
-	D3D11_MAPPED_SUBRESOURCE MappedResource3;
-	SearchResult *p3;
-	deviceContext->Map(debugbuf3, 0, D3D11_MAP_READ, 0, &MappedResource3);
+	//ID3D11Buffer* debugbuf3 = m_computeshader_helper->CreateAndCopyToDebugBuf(device, deviceContext, m_Buffer_SearchResult);
+	//D3D11_MAPPED_SUBRESOURCE MappedResource3;
+	//SearchResult *p3;
+	//deviceContext->Map(debugbuf3, 0, D3D11_MAP_READ, 0, &MappedResource3);
 
-	// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
-	// This is also a common trick to debug CS programs.
-	p3 = (SearchResult*)MappedResource3.pData;
+	//// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
+	//// This is also a common trick to debug CS programs.
+	//p3 = (SearchResult*)MappedResource3.pData;
 
-	SearchResult nodes3[NUM_AGENTS];
-	for (int i = 0; i < NUM_AGENTS; i++)
-	{
-		nodes3[i] = p3[i];
-	}
-	deviceContext->Unmap(debugbuf3, 0);
+	//SearchResult nodes3[NUM_AGENTS];
+	//for (int i = 0; i < NUM_AGENTS; i++)
+	//{
+	//	nodes3[i] = p3[i];
+	//}
+	//deviceContext->Unmap(debugbuf3, 0);
 
-	debugbuf3->Release();
-	debugbuf3 = 0;
-	///////////////////////////////////////////////////////////////////
+	//debugbuf3->Release();
+	//debugbuf3 = 0;
+	/////////////////////////////////////////////////////////////////////
 
-	//	 Verify that if Compute Shader has done right
-	printf("Verifying against CPU result...");
-	//////////////////////////////////////////////////////////////////
-	// Extract the result of A* search from GPU
+	//////	 Verify that if Compute Shader has done right
+	//printf("Verifying against CPU result...");
+	////////////////////////////////////////////////////////////////////
+	//// Extract the result of A* search from GPU
 
-	int  *pathList;
-	pathList = new (nothrow)int[NUM_OPENLIST_COUNT];          //size must be of type int 
+	//int  *pathList;
+	//pathList = new (nothrow)int[NUM_OPENLIST_COUNT];          //size must be of type int 
 
-	if (pathList == nullptr)
-	{
-		std::cout << "Error: memory could not be allocated";
-	}
+	//if (pathList == nullptr)
+	//{
+	//	std::cout << "Error: memory could not be allocated";
+	//}
 
-	SearchResult pathfindingResult;
-	AgentRender agentRenderList[NUM_AGENTS];
-	for (int i = 0; i < NUM_AGENTS; i++)
-	{
-		pathfindingResult = p3[i];
-	std:vector<int> pathVector;
-		if (pathfindingResult.result == 1){
-			// Generate the Path
-			int sourceGridId = pathfindingResult.sourceGridId;
-			int currentGridId = pathfindingResult.finalGridId; // Start pathbuilding with target node
-			int offset = i * (MAP_DIMENSIONS * MAP_DIMENSIONS);
-			int pathArray[64];
-			int counter = 0;
-			pathArray[counter] = currentGridId;
-			pathList[offset + counter] = currentGridId;
-			pathVector.push_back(currentGridId);
-			counter++;
+	//SearchResult pathfindingResult;
+	//AgentRender agentRenderList[NUM_AGENTS];
+	//for (int i = 0; i < NUM_AGENTS; i++)
+	//{
+	//	pathfindingResult = p3[i];
+	//std:vector<int> pathVector;
+	//	if (pathfindingResult.result == 1){
+	//		// Generate the Path
+	//		int sourceGridId = pathfindingResult.sourceGridId;
+	//		int currentGridId = pathfindingResult.finalGridId; // Start pathbuilding with target node
+	//		int offset = i * (MAP_DIMENSIONS * MAP_DIMENSIONS);
+	//		int pathArray[64];
+	//		int counter = 0;
+	//		pathArray[counter] = currentGridId;
+	//		pathList[offset + counter] = currentGridId;
+	//		pathVector.push_back(currentGridId);
+	//		counter++;
 
-			while (sourceGridId != currentGridId){
-				int  parentId = gridNodeListGPU[offset + currentGridId].parentId;
-				//pathArray[counter] = parentId;
-				pathVector.push_back(parentId);
-				currentGridId = parentId;
-				counter++;
-			}
-			int counter1 = 0;
-			while (!pathVector.empty()){
-				pathArray[counter1] = pathVector.back();
-				pathList[offset + counter] = pathVector.back();
-				pathVector.pop_back();
-				counter1++;
-			}
+	//		while (sourceGridId != currentGridId){
+	//			int  parentId = gridNodeListGPU[offset + currentGridId].parentId;
+	//			//pathArray[counter] = parentId;
+	//			pathVector.push_back(parentId);
+	//			currentGridId = parentId;
+	//			counter++;
+	//		}
+	//		int counter1 = 0;
+	//		while (!pathVector.empty()){
+	//			pathArray[counter1] = pathVector.back();
+	//			pathList[offset + counter] = pathVector.back();
+	//			pathVector.pop_back();
+	//			counter1++;
+	//		}
 
-			AgentRender agent;
-			agent.agentId = pathfindingResult.agentId;
-			agent.pathCount = counter;
-			agentRenderList[i] = agent;
-		}
-	}
+	//		AgentRender agent;
+	//		agent.agentId = pathfindingResult.agentId;
+	//		agent.pathCount = counter;
+	//		agentRenderList[i] = agent;
+	//	}
+	//}
 
 
-	delete[] pathList;
+	//delete[] pathList;
 
 
 	return true;
