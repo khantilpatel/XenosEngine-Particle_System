@@ -49,6 +49,18 @@
     <Filter Include="class-AI">
       <UniqueIdentifier>{77da4b9b-de1d-42a2-b60c-faf370010148}</UniqueIdentifier>
     </Filter>
+    <Filter Include="class-shaders\Multi Agents">
+      <UniqueIdentifier>{066c17a1-02ed-48d6-b2fc-c8393af0da9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders\ComputeShaders">
+      <UniqueIdentifier>{e330fce8-5a7d-4591-92e0-840a7e1fc10d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders\DrawShaders">
+      <UniqueIdentifier>{6af64e2b-a204-41e7-b1a7-e33b24563bb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="class-framework\utility\GeometryUtility">
+      <UniqueIdentifier>{5fc449b2-ed35-428b-bef9-5c7f93ec60cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -120,9 +132,6 @@
     <ClCompile Include="main1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComputeShaderSortMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AStar_Type1_ShaderClass.cpp">
       <Filter>class-AI</Filter>
     </ClCompile>
@@ -137,6 +146,12 @@
     </ClCompile>
     <ClCompile Include="AStar_Type2_ShaderClass.cpp">
       <Filter>class-AI</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiAgentDrawClass.cpp">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShaderSortMain.cpp">
+      <Filter>shaders\ComputeShaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -218,28 +233,31 @@
     <ClInclude Include="AStar_Type2_ShaderClass.h">
       <Filter>class-AI</Filter>
     </ClInclude>
+    <ClInclude Include="MultiAgentDrawClass.h">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="texture.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="texture.ps">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="particle.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="particle.ps">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="simple.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="simple.ps">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="FireShader.hlsl">
       <Filter>shaders\ParticleEffects</Filter>
+    </None>
+    <None Include="particle.ps">
+      <Filter>shaders\DrawShaders</Filter>
+    </None>
+    <None Include="particle.vs">
+      <Filter>shaders\DrawShaders</Filter>
+    </None>
+    <None Include="simple.ps">
+      <Filter>shaders\DrawShaders</Filter>
+    </None>
+    <None Include="simple.vs">
+      <Filter>shaders\DrawShaders</Filter>
+    </None>
+    <None Include="texture.ps">
+      <Filter>shaders\DrawShaders</Filter>
+    </None>
+    <None Include="texture.vs">
+      <Filter>shaders\DrawShaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -267,19 +285,28 @@
       <Filter>shaders\ParticleEffects</Filter>
     </FxCompile>
     <FxCompile Include="SkyPixelShader.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>shaders\DrawShaders</Filter>
     </FxCompile>
     <FxCompile Include="BasicCompute11_new.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>shaders\ComputeShaders</Filter>
     </FxCompile>
     <FxCompile Include="ComputeShaderSort11.hlsl">
-      <Filter>Source Files</Filter>
+      <Filter>shaders\ComputeShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentDraw_CS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
     </FxCompile>
     <FxCompile Include="AStar_Type1_ComputeShader.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>class-AI</Filter>
     </FxCompile>
     <FxCompile Include="AStar_Type2_ComputeShader.hlsl">
-      <Filter>shaders</Filter>
+      <Filter>class-AI</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentDraw_VS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentDraw_PS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -98,22 +98,22 @@ bool SimpleShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR*
 		return false;
 	}
 	
-	
-
-    // Create the vertex shader from the buffer.
-    result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
-	if(FAILED(result))
+	// Compile and Create VertexShader Object
+	result = device->CreateVertexShader(vertexShaderBuffer, sizeof(vertexShaderBuffer), nullptr, &m_vertexShader);
+	if (FAILED(result))
 	{
 		return false;
 	}
 
-    // Create the pixel shader from the buffer.
-    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
-	if(FAILED(result))
+
+	// Compile and Create PixelShader Object
+	result = device->CreatePixelShader(pixelShaderBuffer, sizeof(pixelShaderBuffer), nullptr, &m_pixelShader);
+	if (FAILED(result))
 	{
 		return false;
 	}
-	
+
+	// Create InputLayout for VertexBuffer to be used during draw calls
 	result = createInputLayoutDesc(device, vertexShaderBuffer);
 	if(FAILED(result))
 	{
@@ -138,7 +138,7 @@ bool SimpleShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR*
 
 bool SimpleShaderClass::createInputLayoutDesc(ID3D11Device* device, ID3D10Blob* vertexShaderBuffer)
 {
-	bool result = true;
+	HRESULT result = true;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
 		// Create the vertex input layout description.
@@ -170,13 +170,13 @@ bool SimpleShaderClass::createInputLayoutDesc(ID3D11Device* device, ID3D10Blob* 
 		return false;
 	}
 
-	return result;
+	return true;
 }
 
 
 bool SimpleShaderClass::createConstantBuffer_TextureBuffer(ID3D11Device* device)
 {
-	boolean result = true;
+	HRESULT result = true;
 	D3D11_SAMPLER_DESC samplerDesc;
 		// Create a texture sampler state description.
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -200,7 +200,7 @@ bool SimpleShaderClass::createConstantBuffer_TextureBuffer(ID3D11Device* device)
 		return false;
 	}
 
-	return result;
+	return true;
 }
 
 
@@ -225,12 +225,7 @@ bool SimpleShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCou
 
 bool SimpleShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,  ID3D11ShaderResourceView* texture)
 {
-	HRESULT result;
-
-	//MatrixBufferType* dataPtr;
-	unsigned int bufferNumber;
-
-
+	boolean result;
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);

@@ -23,6 +23,8 @@ GraphicsClass::GraphicsClass()
 	m_AStar_Type1_ShaderClass = 0;
 	m_AStar_Type2_ShaderClass = 0;
 
+	m_MultiAgentDrawClass = 0;
+
 }
 
 
@@ -119,12 +121,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the texture shader object.
-	result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	/*result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the simple shader object.", L"Error", MB_OK);
 		return false;
-	}
+	}*/
 
 	// Create the particle shader object.
 	m_ParticleShader = new ParticleShaderClass;
@@ -191,6 +193,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_AStar_Type2_ShaderClass = new AStar_Type2_ShaderClass;
 	result = m_AStar_Type2_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd);
+	if (!result)
+	{
+
+		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
+		return false;
+	}
+
+	
+
+	m_MultiAgentDrawClass = new MultiAgentDrawClass;
+	result = m_MultiAgentDrawClass->Initialize(m_D3D->GetDevice(), hwnd);
 	if (!result)
 	{
 
@@ -268,7 +281,8 @@ bool GraphicsClass::Render()
 	m_D3D->EnableDepthStencilState();
 	m_D3D->SetRasterState_Default();
 	/////////////////////////////////////////////////////////////////////
-
+	m_MultiAgentDrawClass->RenderShader(m_D3D->GetDeviceContext(), worldMatrix, viewMatrix,
+		projectionMatrix, m_Camera->GetPosition_XM());
 	///////////////////////////////////////////////////////////////////
 	// RENDER FIRE PARTICLES
 	/////////////////////////////////////////////////////////////////////
@@ -302,7 +316,7 @@ bool GraphicsClass::Render()
 	/////////////////////////////////////////////////////////////////////
 	// AI A*- Type-2 RENDERING
 	/////////////////////////////////////////////////////////////////////
-	m_AStar_Type2_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
+	//m_AStar_Type2_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
 	/////////////////////////////////////////////////////////////////////
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	//m_Model->Render(m_D3D->GetDeviceContext());
@@ -405,6 +419,14 @@ void GraphicsClass::Shutdown()
 		delete m_skyBox;
 		m_skyBox = 0;
 	}
+
+	if (m_MultiAgentDrawClass)
+	{
+		m_MultiAgentDrawClass->Shutdown();
+		delete m_MultiAgentDrawClass;
+		m_MultiAgentDrawClass = 0;
+	}
+
 	return;
 }
 

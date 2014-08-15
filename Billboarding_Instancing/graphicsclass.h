@@ -21,6 +21,7 @@
 #include "SkyBox.h"
 #include "AStar_Type1_ShaderClass.h"
 #include "AStar_Type2_ShaderClass.h"
+#include "MultiAgentDrawClass.h"
 /////////////
 // GLOBALS //
 /////////////
@@ -66,6 +67,8 @@ private:
 
 	AStar_Type1_ShaderClass* m_AStar_Type1_ShaderClass;
 	AStar_Type2_ShaderClass* m_AStar_Type2_ShaderClass;
+
+	MultiAgentDrawClass* m_MultiAgentDrawClass;
 };
 
 #endif
