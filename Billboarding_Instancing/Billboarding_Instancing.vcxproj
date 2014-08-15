@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="AStar_Type1_ShaderClass.cpp" />
     <ClCompile Include="AStar_Type2_ShaderClass.cpp" />
+    <ClCompile Include="AStar_Type3_ShaderClass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="ComputeShaderHelperClass.cpp" />
     <ClCompile Include="ComputeShaderSortMain.cpp" />
@@ -45,6 +46,7 @@
   <ItemGroup>
     <ClInclude Include="AStar_Type1_ShaderClass.h" />
     <ClInclude Include="AStar_Type2_ShaderClass.h" />
+    <ClInclude Include="AStar_Type3_ShaderClass.h" />
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="ComputeShaderHelperClass.h" />
     <ClInclude Include="ConsoleWindow.h" />
@@ -75,7 +77,9 @@
     <Image Include="seafloor.dds" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\GPGPU-AI\Engine\Activity1.nvact" />
     <None Include="FireShader.hlsl" />
+    <None Include="GPGPU-AI.nvact" />
     <None Include="particle.ps" />
     <None Include="particle.vs" />
     <None Include="simple.ps" />

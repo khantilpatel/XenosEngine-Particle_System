@@ -1,5 +1,5 @@
-#define NUM_THREAD_X 32
-#define NUM_THREAD_Y 32
+#define NUM_THREAD_X 1
+#define NUM_THREAD_Y 1
 
 cbuffer AStarParameters : register(b0){
 	int NUM_GRID_BLOCK_X;
@@ -52,6 +52,7 @@ struct uint7{
 	uint cost;
 	uint G_cost;
 	uint pqId;
+	uint H_cost;
 };
 
 SamplerState samLinear
@@ -96,7 +97,7 @@ uint getGridIntegerCoordinate(uint x, uint y)
 	return gridId;
 }
 
-void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint parentId, uint status){
+void insertPQ(uint offset, uint x, uint y, uint current_cost, uint H_cost, uint G_cost, uint parentId, uint status){
 
 
 	// 1.First get the Grid ID of the new node
@@ -115,7 +116,7 @@ void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint 
 		gGridNodeListOut[offset + gOpenListOut[offset + i]].pqId = i;
 
 		i = i / 2;
-		parent_cost = gGridNodeListOut[offset + gOpenListOut[offset + i]].cost;
+		parent_cost = gGridNodeListOut[offset + gOpenListOut[offset + (i/2)]].cost;
 	}
 
 	// 2. Insert into GridNodeList with cost
@@ -127,6 +128,7 @@ void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint 
 	GridNode.status = status;
 	GridNode.G_cost = G_cost;
 	GridNode.pqId = i;
+	GridNode.H_cost = H_cost;
 	gGridNodeListOut[offset + gridId] = GridNode;
 
 	//Insert into PQ;
@@ -265,7 +267,7 @@ groupshared int shared_data[30];
 //}
 
 void addToOpenList(uint offset, uint2 thisNode, uint2 targetNode, uint parent_G_Cost,
-	uint G_COST, uint outputSlot)
+	uint G_COST, uint outputSlot, uint parentId)
 {
 	shared_data[outputSlot] = -1;
 	const uint _COLLISION_NODE = 1;
@@ -285,19 +287,24 @@ void addToOpenList(uint offset, uint2 thisNode, uint2 targetNode, uint parent_G_
 
 		int x1 = int(thisNode.x);
 		int x2 = int(targetNode.x);
+
+		int y1 = int(thisNode.y);
+		int y2 = int(targetNode.y);
 		// 4. calculate H cost
 		int x_temp = abs(x1 - x2);
-		int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
+		int y_temp = abs(y1 - y2); //int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
 
-		int temp = max(x_temp, y_temp);
+		int temp = x_temp + y_temp;
 		uint H = uint(temp);
 		uint current_cost = current_G_cost + H * 10; // F = G + H
-
-		shared_data[outputSlot] = 1; // Result
-		shared_data[outputSlot + 1] = current_cost; // F cost
-		shared_data[outputSlot + 2] = current_G_cost; // G cost
 		
-
+		//shared_data[outputSlot] = 1; // Result
+		//shared_data[outputSlot + 1] = current_cost; // F cost
+		//shared_data[outputSlot + 2] = current_G_cost; // G cost
+		
+		
+		insertPQ(offset, thisNode.x, thisNode.y, current_cost, H*10, current_G_cost, parentId, _NODE_OPEN);
+	
 		// 5. insert into PQ
 		// 6. set current node ID as parent
 		// 7. set node status open;	
@@ -315,45 +322,77 @@ void addToOpenList(uint offset, uint2 thisNode, uint2 targetNode, uint parent_G_
 		{
 			int x1 = int(thisNode.x);
 			int x2 = int(targetNode.x);
+			int y1 = int(thisNode.y);
+			int y2 = int(targetNode.y);
 			// 4. calculate H cost
 			int x_temp = abs(x1 - x2);
-			int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
+			int y_temp = abs(y1 - y2); //int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
 
 			int temp = x_temp + y_temp;
 			uint H = uint(temp);
 			uint F = current_G_cost + H * 10; // F = G + H
 			gGridNodeListOut[offset + thisGridNodeID].cost = F;
+
+			gGridNodeListOut[offset + thisGridNodeID].G_cost = current_G_cost;
+			gGridNodeListOut[offset + thisGridNodeID].H_cost = H * 10;
+
+			gGridNodeListOut[offset + thisGridNodeID].parentId = parentId;
+
+
 			uint pqId = thisGridNode.pqId;
 
-			shared_data[outputSlot] = 2; // result 
-			shared_data[outputSlot + 1] = pqId;
+
+			updatePQ(offset, pqId);
+
+			//shared_data[outputSlot] = 2; // result 
+			//shared_data[outputSlot + 1] = pqId;
 			//shared_data[outputSlot + 2] = current_G_cost; // G cost
 			//updatePQ(offset, pqId);
 		}
 	}
 }
 
-void addToOpenList_Final (uint branchResult, uint x, uint y, uint SHARED_OFFSET, uint offset, uint gridId)
+//void addToOpenList_Final (uint branchResult, uint x, uint y, uint SHARED_OFFSET, uint offset, uint parentGridId)
+//{
+//	//if (x == 8 && y == 7){
+//	//	SearchResult pathfindingResult;
+//	//	pathfindingResult.agentId = x;//agent.id;
+//	//	pathfindingResult.finalCost = y;//pqCurrentNode.y;
+//	//	pathfindingResult.sourceGridId = parentGridId;
+//	//	pathfindingResult.finalGridId = 0;
+//	//	pathfindingResult.result = SHARED_OFFSET;
+//	//	gBufferOut[0] = pathfindingResult;
+//	//}
+//	
+//
+//	if (1 == branchResult){
+//		uint F = shared_data[SHARED_OFFSET + 1];
+//		uint G = shared_data[SHARED_OFFSET + 2];
+//		insertPQ(offset, x, y, F, F-G , G, parentGridId, 1);
+//	}
+//	else if (2 == branchResult){
+//		uint pqId = shared_data[SHARED_OFFSET + 1];
+//		updatePQ(offset, pqId);
+//	}
+//}
+
+[numthreads(8, 1, 1)] //NUM_THREAD_X
+void main(uint3 DTid : SV_DispatchThreadID, uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex)
 {
-	if (1 == branchResult){
-		uint F = shared_data[SHARED_OFFSET + 1];
-		uint G = shared_data[SHARED_OFFSET + 2];
-		insertPQ(offset, x, y, F, G, gridId, 1);
-	}
-	else if (2 == branchResult){
-		uint pqId = shared_data[SHARED_OFFSET + 1];
-		updatePQ(offset, pqId);
-	}
+	///////////////////////////////////////////////////////////////
+	///Thread Indexing testing
+	//uint gridIdTest = (64 * Gid.y) + Gid.x;
+	//SearchResult pathfindingResult;
+	//pathfindingResult.agentId = Gid.x;//agent.id;
+	//pathfindingResult.finalCost = Gid.y;//pqCurrentNode.y;
+	//pathfindingResult.sourceGridId = 0;
+	//pathfindingResult.finalGridId = 0;
+	//pathfindingResult.result = 1;
 
-}
-
-[numthreads(9, 1, 1)] //NUM_THREAD_X
-void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID, uint GI : SV_GroupIndex)
-{
-
-
+	//gBufferOut[gridIdTest] = pathfindingResult;
+	/////////////////////////////////////////////////////////////////
 	Agent agent;
-	uint gridId = 0;//= ((NUM_THREAD_X * NUM_GRID_BLOCK_X) * DTid.y) + DTid.x;
+	uint gridId = 0; //= ((NUM_THREAD_X * NUM_GRID_BLOCK_X) * DTid.y) + DTid.x;
 	uint offset = 0; // = gridId * (MAP_DIMENSIONS * MAP_DIMENSIONS);
 	uint threadId = 0;//
 	uint result = 0; // Final search result
@@ -381,7 +420,8 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID, uint GI : S
 
 	if (GI == 0)
 	{
-		gridId = ((NUM_THREAD_X * NUM_GRID_BLOCK_X) * DTid.y) + DTid.x;
+		//gridId = ((NUM_THREAD_X * NUM_GRID_BLOCK_X) * Gid.y) + Gid.x;
+		gridId = (64 * Gid.y) + Gid.x;
 		offset = gridId * (MAP_DIMENSIONS * MAP_DIMENSIONS);
 		threadId = gridId;
 		uint7 node;
@@ -392,6 +432,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID, uint GI : S
 		node.parentId = 0;
 		node.status = 3;
 		node.pqId = 0;
+		node.H_cost = 0;
 		gGridNodeListOut[offset + 20] = node;
 
 		node.x = 4;
@@ -438,229 +479,243 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID, uint GI : S
 		// Insert the first node into OpenList;
 		// &
 		// Insert into GridNodeList
-		insertPQ(offset, nodeFirstLoc.x, nodeFirstLoc.y, 10, 0, 0, _NODE_OPEN);
+		insertPQ(offset, nodeFirstLoc.x, nodeFirstLoc.y, 10, 0 , 0, 0, _NODE_OPEN);
 
 		shared_data[0] = targetNode.x;
 		shared_data[1] = targetNode.y;
 		shared_data[2] = offset;
 	}
 	
-	[loop]
-	for (uint i = 0; i <= (MAP_DIMENSIONS * MAP_DIMENSIONS); i++)
-	{
-		uint7 currentNode;
-		if (GI == 0 && targetFound != true)
+	if (0 <= GI && 7 >= GI){
+		[loop]
+		for (uint i = 0; i <= (MAP_DIMENSIONS * MAP_DIMENSIONS); i++) //(MAP_DIMENSIONS * MAP_DIMENSIONS)
 		{
-			m_GridId = removePQ(offset);
-			gGridNodeListOut[offset + m_GridId].status = _NODE_CLOSED;
-			currentNode = gGridNodeListOut[offset + m_GridId];
-			//GroupMemoryBarrierWithGroupSync();
-			// terminate if no path found or pathfound
-			if (currentNode.cost == 0)
+			//gBufferOut[threadId].agentId = i;
+			uint7 currentNode;
+			if (GI == 0 && targetFound != true)
 			{
-				result = 0;
-				targetFound = true;
-				//break;
-				// initialize sharedmemory to 0
-				SearchResult pathfindingResult;
-				pathfindingResult.agentId = agent.id;//agent.id;
-				pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
-				pathfindingResult.sourceGridId = sourceGridId;
-				pathfindingResult.finalGridId = m_GridId;
-				pathfindingResult.result = result;
+				m_GridId = removePQ(offset);
+				gGridNodeListOut[offset + m_GridId].status = _NODE_CLOSED;
+				currentNode = gGridNodeListOut[offset + m_GridId];
+				//GroupMemoryBarrierWithGroupSync();
+				// terminate if no path found or pathfound
+				if (currentNode.cost == 0)
+				{
+					result = 0;
+					targetFound = true;
 
-				gBufferOut[threadId] = pathfindingResult;
+					SearchResult pathfindingResult;
+					pathfindingResult.agentId = agent.id;//agent.id;
+					pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
+					pathfindingResult.sourceGridId = sourceGridId;
+					pathfindingResult.finalGridId = m_GridId;
+					pathfindingResult.result = result;
+
+					gBufferOut[threadId] = pathfindingResult;
+				}
+				else if (m_GridId == targetNodeGridId){
+					result = 1;
+					targetFound = true;
+					//i = 64;
+					SearchResult pathfindingResult;
+					pathfindingResult.agentId = loopCounter;//agent.id;//agent.id;
+					pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
+					pathfindingResult.sourceGridId = sourceGridId;
+					pathfindingResult.finalGridId = m_GridId;
+					pathfindingResult.result = result;
+
+					gBufferOut[threadId] = pathfindingResult;
+				}
+				else{
+					loopCounter = loopCounter + 1;
+					//currentGridNode = gGridNodeListOut[pqTopNode.x];		
+					float tempx = float(currentNode.x);
+					float tempy = float(currentNode.y);
+					shared_data[3] = tempx;
+					shared_data[4] = tempy;
+					shared_data[5] = currentNode.G_cost;
+					shared_data[6] = m_GridId;
+				}
+
+				//if (loopCounter==42) //8
+				//	break;
+				//}
+
+
 			}
-			else if (m_GridId == targetNodeGridId){
-				result = 1;
-				targetFound = true;
-				//break;
-				SearchResult pathfindingResult;
-				pathfindingResult.agentId = agent.id;//agent.id;
-				pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
-				pathfindingResult.sourceGridId = sourceGridId;
-				pathfindingResult.finalGridId = m_GridId;
-				pathfindingResult.result = result;
 
-				gBufferOut[threadId] = pathfindingResult;
-			}
-			else{
-				loopCounter = loopCounter + 1;
-				//currentGridNode = gGridNodeListOut[pqTopNode.x];		
-				float tempx = float(currentNode.x);
-				float tempy = float(currentNode.y);
-				shared_data[3] = tempx;
-				shared_data[4] = tempy;
-				shared_data[5] = currentNode.G_cost;
-			
-			}
+			///////////////////////////////////////////////////////////////////////
+			GroupMemoryBarrierWithGroupSync();
+			///////////////////////////////////////////////////////////////////////
+			if (targetFound != true){
+				uint2 targetNode = uint2(shared_data[0], shared_data[1]);
+					uint offset = shared_data[2];
+				float tempx = float(shared_data[3]);
+				float tempy = float(shared_data[4]);
+				uint parent_G_Cost = shared_data[5];
+				m_GridId = shared_data[6];
+				///// RIGHT //////////////////////////////////////////////////////////////////////////////////
+				if (GI == 1)
+				{
+					if (MAP_DIMENSIONS > tempx + 1) // To the immidiate right
+					{
+						uint outputSlot = _RIGHT;
+						uint G_COST = 10;
+						uint2 thisNode = uint2(tempx + 1, tempy);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
 
-			//if (loopCounter==42) //8
-			//	break;
-			//}
+					}
+				}
 
+				////// BOTTOM-RIGHT ///////////////////////////////////////////////////////////////////////////
+				if (GI == 2)
+				{
+					if (MAP_DIMENSIONS > (tempx + 1) && 0 <= (tempy - 1)) // To the immidiate right
+					{
+						uint outputSlot = _B_RIGHT;
+						uint G_COST = 12;
+						uint2 thisNode = uint2(tempx + 1, tempy - 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		}
+				////// BOTTOM ///////////////////////////////////////////////////////////////////////////////
+				if (GI == 3)
+				{
 
-		///////////////////////////////////////////////////////////////////////
-		GroupMemoryBarrierWithGroupSync();
-		///////////////////////////////////////////////////////////////////////
-		uint2 targetNode = uint2(shared_data[0], shared_data[1]);
-			uint offset = shared_data[2];
-		float tempx = float(shared_data[3]);
-		float tempy = float(shared_data[4]);
-		uint parent_G_Cost = shared_data[5];
+					if (0 <= (tempy - 1)) // To the immidiate right
+					{
+						uint outputSlot = _BOTTOM;
+						uint G_COST = 10;
+						uint2 thisNode = uint2(tempx, tempy - 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		///// RIGHT //////////////////////////////////////////////////////////////////////////////////
-		if (GI == 1 && targetFound != true)
-		{		
-			if (MAP_DIMENSIONS > tempx + 1) // To the immidiate right
-			{
-				uint outputSlot = _RIGHT;
-				uint G_COST = 10;
-				uint2 thisNode = uint2(tempx + 1, tempy);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
-		
-		////// BOTTOM-RIGHT ///////////////////////////////////////////////////////////////////////////
-		if (GI == 2 && targetFound != true)
-		{			
-			if (MAP_DIMENSIONS > (tempx + 1) && 0 <= (tempy - 1)) // To the immidiate right
-			{
-				uint outputSlot = _B_RIGHT;
-				uint G_COST = 12;
-				uint2 thisNode = uint2(tempx + 1, tempy -1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
+				////// _B_LEFT ////////////////////////////////////////////////////////////////////////////////
+				if (GI == 4)
+				{
+					if (0 <= (tempx - 1) && 0 <= (tempy - 1)) // To the immidiate right
+					{
+						uint outputSlot = _B_LEFT;
+						uint G_COST = 12;
+						uint2 thisNode = uint2(tempx - 1, tempy - 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		////// BOTTOM ///////////////////////////////////////////////////////////////////////////////
-		if (GI == 3 && targetFound != true)
-		{
-		
-			if (0 <= (tempy - 1)) // To the immidiate right
-			{
-				uint outputSlot = _BOTTOM;
-				uint G_COST = 10;
-				uint2 thisNode = uint2(tempx, tempy - 1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
+				///// _LEFT ///////////////////////////////////////////////////////////////////////////////////	
+				if (GI == 5)
+				{
+					if (0 <= (tempx - 1))// To the immidiate right
+					{
+						uint outputSlot = _LEFT;
+						uint G_COST = 10;
+						uint2 thisNode = uint2(tempx - 1, tempy);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		////// _B_LEFT ////////////////////////////////////////////////////////////////////////////////
-		if (GI == 4 && targetFound != true)
-		{
-			if (0 <= (tempx - 1) && 0 <= (tempy - 1)) // To the immidiate right
-			{
-				uint outputSlot = _B_LEFT;
-				uint G_COST = 12;
-				uint2 thisNode = uint2(tempx -1, tempy - 1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
+				///// _T_LEFT//////////////////////////////////////////////////////////////////////////////
+				if (GI == 6)
+				{
+					if (0 <= (tempx - 1) && MAP_DIMENSIONS > (tempy + 1))// To the immidiate right
+					{
+						uint outputSlot = _T_LEFT;
+						uint G_COST = 12;
+						uint2 thisNode = uint2(tempx - 1, tempy + 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		///// _LEFT ///////////////////////////////////////////////////////////////////////////////////	
-		if (GI == 5 && targetFound != true)
-		{
-			if (0 <= (tempx - 1))// To the immidiate right
-			{
-				uint outputSlot = _LEFT;
-				uint G_COST = 10;
-				uint2 thisNode = uint2(tempx - 1, tempy);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
+				///// _TOP //////////////////////////////////////////////////////////////////////////////
+				if (GI == 7)
+				{
+					if (MAP_DIMENSIONS > (tempy + 1))// To the immidiate right
+					{
+						uint outputSlot = _TOP;
+						uint G_COST = 10;
+						uint2 thisNode = uint2(tempx, tempy + 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 
-		///// _T_LEFT//////////////////////////////////////////////////////////////////////////////
-		if (GI == 6 && targetFound != true)
-		{
-			if (0 <= (tempx - 1) && MAP_DIMENSIONS > (tempy + 1))// To the immidiate right
-			{
-				uint outputSlot = _T_LEFT;
-				uint G_COST = 12;
-				uint2 thisNode = uint2(tempx - 1, tempy + 1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
-
-		///// _TOP //////////////////////////////////////////////////////////////////////////////
-		if (GI == 7 && targetFound != true)
-		{
-			if (MAP_DIMENSIONS > (tempy + 1))// To the immidiate right
-			{
-				uint outputSlot = _TOP;
-				uint G_COST = 10;
-				uint2 thisNode = uint2(tempx, tempy + 1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
-			}
-		}
-
-		///// _TOP_RIGHT //////////////////////////////////////////////////////////////////////////////
-		if (GI == 8 && targetFound != true)
-		{
-			if (0 <= (tempx + 1) && MAP_DIMENSIONS > (tempy + 1)) // To the immidiate right
-			{
-				uint outputSlot = _T_RIGHT;
-				uint G_COST = 12;
-				uint2 thisNode = uint2(tempx + 1, tempy + 1);
-				addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot);
+				///// _TOP_RIGHT //////////////////////////////////////////////////////////////////////////////
+				if (GI == 0)
+				{
+					if (MAP_DIMENSIONS > (tempx + 1) && MAP_DIMENSIONS > (tempy + 1)) // To the immidiate right
+					{
+						uint outputSlot = _T_RIGHT;
+						uint G_COST = 12;
+						uint2 thisNode = uint2(tempx + 1, tempy + 1);
+							addToOpenList(offset, thisNode, targetNode, parent_G_Cost, G_COST, outputSlot, m_GridId);
+					}
+				}
 			}
 		}
 		///////////////////////////////////////////////////////////////////////////////////////////////////
-		GroupMemoryBarrierWithGroupSync();
+		//GroupMemoryBarrierWithGroupSync();
 		/////////////////////////////////////////////////////////////////////////////////////////////////
 		// RIGHT
-		if (GI == 0 && targetFound != true){
-			uint branchResult = shared_data[_RIGHT];
-			if (1 == branchResult || 2 == branchResult)
-			{
+		//if (GI == 0 && targetFound != true){
+		//	uint branchResult = shared_data[_RIGHT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_RIGHT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y, _RIGHT, offset, m_GridId);
+		//	}
+		//	 branchResult = shared_data[_B_RIGHT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_B_RIGHT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y - 1, _B_RIGHT, offset, m_GridId);
+		//	}
 
-				addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y, _RIGHT, offset, m_GridId);
-			}
-			 branchResult = shared_data[_B_RIGHT];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y - 1, _B_RIGHT, offset, m_GridId);
-			}
+		//	 branchResult = shared_data[_BOTTOM];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_BOTTOM] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x, currentNode.y - 1, _BOTTOM, offset, m_GridId);
+		//	}
 
-			 branchResult = shared_data[_BOTTOM];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x, currentNode.y - 1, _BOTTOM, offset, m_GridId);
-			}
+		//	 branchResult = shared_data[_B_LEFT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_B_LEFT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y - 1, _B_LEFT, offset, m_GridId);
+		//	}
 
-			 branchResult = shared_data[_B_LEFT];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y - 1, _B_LEFT, offset, m_GridId);
-			}
-
-			 branchResult = shared_data[_LEFT];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y, _LEFT, offset, m_GridId);
-			}
+		//	 branchResult = shared_data[_LEFT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_LEFT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y, _LEFT, offset, m_GridId);
+		//	}
 
 
-			 branchResult = shared_data[_T_LEFT];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y + 1, _T_LEFT, offset, m_GridId);
-			}
+		//	 branchResult = shared_data[_T_LEFT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_T_LEFT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x - 1, currentNode.y + 1, _T_LEFT, offset, m_GridId);
+		//	}
 
-			 branchResult = shared_data[_TOP];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x, currentNode.y + 1, _TOP, offset, m_GridId);
-			}
+		//	 branchResult = shared_data[_TOP];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_TOP] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x, currentNode.y + 1, _TOP, offset, m_GridId);
+		//	}
 
-			 branchResult = shared_data[_T_RIGHT];
-			if (1 == branchResult || 2 == branchResult)
-			{
-				addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y + 1, _T_RIGHT, offset, m_GridId);
-			}
-		}
+		//	 branchResult = shared_data[_T_RIGHT];
+		//	if (1 == branchResult || 2 == branchResult)
+		//	{
+		//		shared_data[_T_RIGHT] = 0;
+		//		addToOpenList_Final(branchResult, currentNode.x + 1, currentNode.y + 1, _T_RIGHT, offset, m_GridId);
+		//	}
+		//	//i = 64;
+		//}
+		//GroupMemoryBarrierWithGroupSync();
 		// BOTTOM-RIGHT
 		// BOTTOM
 		// BOTTOM-LEFT
@@ -670,6 +725,6 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID, uint GI : S
 		// TOP-RIGHT
 
 	}
-	
+
 }
 

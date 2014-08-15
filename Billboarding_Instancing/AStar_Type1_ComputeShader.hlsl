@@ -69,6 +69,7 @@ struct uint7{
 	uint cost;
 	uint G_cost;
 	uint pqId;
+	uint H_cost;
 };
 
 SamplerState samLinear
@@ -113,7 +114,7 @@ uint getGridIntegerCoordinate(uint x, uint y)
 	return gridId;
 }
 
-void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint parentId, uint status){
+void insertPQ(uint offset, uint x, uint y, uint current_cost, uint H_cost, uint G_cost, uint parentId, uint status){
 
 
 	// 1.First get the Grid ID of the new node
@@ -132,7 +133,7 @@ void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint 
 		gGridNodeListOut[offset + gOpenListOut[offset + i]].pqId = i;
 
 		i = i / 2;
-		parent_cost = gGridNodeListOut[offset + gOpenListOut[offset + i]].cost;
+		parent_cost = gGridNodeListOut[offset + gOpenListOut[offset + (i/2)]].cost;
 	}
 
 	// 2. Insert into GridNodeList with cost
@@ -143,6 +144,7 @@ void insertPQ(uint offset, uint x, uint y, uint current_cost, uint G_cost, uint 
 	GridNode.parentId = parentId;
 	GridNode.status = status;
 	GridNode.G_cost = G_cost;
+	GridNode.H_cost = H_cost;
 	GridNode.pqId = i;
 	gGridNodeListOut[offset + gridId] = GridNode;
 
@@ -298,11 +300,14 @@ void addToOpenList(uint offset, uint2 thisNode, uint7 parentGridNodeObject, uint
 
 		int x1 = int(thisNode.x);
 		int x2 = int(targetNode.x);
+
+		int y1 = int(thisNode.y);
+		int y2 = int(targetNode.y);
 		// 4. calculate H cost
 		int x_temp = abs(x1 - x2);
-		int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
+		int y_temp = abs(y1 - y2); //int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
 
-		int temp = max(x_temp, y_temp);
+		int temp = x_temp+ y_temp; // MAX
 		uint H = uint(temp);
 		uint current_cost = current_G_cost + H * 10; // F = G + H
 
@@ -310,7 +315,7 @@ void addToOpenList(uint offset, uint2 thisNode, uint7 parentGridNodeObject, uint
 		// 6. set current node ID as parent
 		// 7. set node status open;	
 		// 8. Insert into GridNodeList
-		insertPQ(offset, thisNode.x, thisNode.y, current_cost, current_G_cost, parentGridId, _NODE_OPEN);
+		insertPQ(offset, thisNode.x, thisNode.y, current_cost, H * 10, current_G_cost, parentGridId, _NODE_OPEN);
 
 	}
 	else if (thisGridNode.status == _NODE_OPEN)
@@ -323,14 +328,23 @@ void addToOpenList(uint offset, uint2 thisNode, uint7 parentGridNodeObject, uint
 		{
 			int x1 = int(thisNode.x);
 			int x2 = int(targetNode.x);
+
+			int y1 = int(thisNode.y);
+			int y2 = int(targetNode.y);
 			// 4. calculate H cost
 			int x_temp = abs(x1 - x2);
-			int y_temp = abs(asfloat(thisNode.y) - asfloat(targetNode.y));
+			int y_temp = abs(y1 - y2); //abs(asfloat(thisNode.y) - asfloat(targetNode.y));
 
 			int temp = x_temp + y_temp;
 			uint H = uint(temp);
 			uint F = current_G_cost + H * 10; // F = G + H
 			gGridNodeListOut[offset + thisGridNodeID].cost = F;
+	
+			gGridNodeListOut[offset + thisGridNodeID].G_cost = current_G_cost;
+		    gGridNodeListOut[offset + thisGridNodeID].H_cost = H * 10;
+		
+			gGridNodeListOut[offset + thisGridNodeID].parentId = parentGridId;
+
 			uint pqId = thisGridNode.pqId;
 			updatePQ(offset, pqId, F);
 		}
@@ -350,6 +364,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 	node.y = 2;
 	node.cost = 0;
 	node.G_cost = 0;
+	node.H_cost = 0;
 	node.parentId = 0;
 	node.status = 3;
 	node.pqId = 0;
@@ -403,7 +418,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 	// Insert the first node into OpenList;
 	// &
 	// Insert into GridNodeList
-	insertPQ(offset, nodeFirstLoc.x, nodeFirstLoc.y, 10, 0, 0, _NODE_OPEN);
+	insertPQ(offset, nodeFirstLoc.x, nodeFirstLoc.y ,10,0, 0, 0, _NODE_OPEN);
 
 	bool targetFound = false;
 	int loopCounter = 0;
@@ -414,8 +429,14 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 	[allow_uav_condition]
 	while (!targetFound)
 	{
-		m_GridId = removePQ(offset);
+		loopCounter = loopCounter + 1;
 
+	/*	if (loopCounter == 13)
+		{
+			break;
+		}*/
+		m_GridId = removePQ(offset);
+		
 		gGridNodeListOut[offset + m_GridId].status = _NODE_CLOSED;
 		currentNode = gGridNodeListOut[offset + m_GridId];
 
@@ -433,7 +454,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 			break;
 		}
 		else{
-			loopCounter = loopCounter + 1;
+			
 			//currentGridNode = gGridNodeListOut[pqTopNode.x];		
 			float tempx = float(currentNode.x);
 			float tempy = float(currentNode.y);
@@ -491,7 +512,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 	}
 
 	SearchResult pathfindingResult;
-	pathfindingResult.agentId = agent.id;//agent.id;
+	pathfindingResult.agentId = loopCounter;//agent.id;//agent.id;
 	pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
 	pathfindingResult.sourceGridId = sourceGridId;
 	pathfindingResult.finalGridId = m_GridId;
