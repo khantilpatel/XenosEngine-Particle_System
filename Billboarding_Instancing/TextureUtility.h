@@ -15,7 +15,7 @@
 #include <fstream>
 #include <xnamath.h>
 #include "MathUtility.h"
-
+#include "GeometryGenerator.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass

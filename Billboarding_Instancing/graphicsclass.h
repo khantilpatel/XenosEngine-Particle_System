@@ -44,9 +44,10 @@ public:
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool UpdateFrame(float,float, float, float, float, float, float, float);
-	
-	 float m_frameTime;
+	void toggle_RasterState_WireFrame();
+	float m_frameTime;
 	float m_TotalTime;
+	bool toggle_WireFrame_Mode;
 private:
 	bool Render();
 

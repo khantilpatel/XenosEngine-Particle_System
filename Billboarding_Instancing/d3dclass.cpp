@@ -15,7 +15,7 @@ D3DClass::D3DClass()
 	m_depthDisableStencilState = 0;
 	m_depthNoWriteStencilState = 0;
 	m_depthStencilView = 0;
-	m_rasterState = 0;
+	m_rasterState_Default = 0;
 }
 
 
@@ -361,7 +361,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState);
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState_Default);
 	if(FAILED(result))
 	{
 		return false;
@@ -375,8 +375,18 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState_WireFrame);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+
 	// Now set the rasterizer state.
-	m_deviceContext->RSSetState(m_rasterState);
+	m_deviceContext->RSSetState(m_rasterState_Default);
 
 	
 	
@@ -462,10 +472,10 @@ void D3DClass::Shutdown()
 		m_swapChain->SetFullscreenState(false, NULL);
 	}
 
-	if(m_rasterState)
+	if (m_rasterState_Default)
 	{
-		m_rasterState->Release();
-		m_rasterState = 0;
+		m_rasterState_Default->Release();
+		m_rasterState_Default = 0;
 	}
 
 	if(m_depthStencilView)
@@ -683,7 +693,7 @@ void D3DClass::SetDepthStencilState_Less_Equal()
 
 void D3DClass::SetRasterState_Default()
 {
-	m_deviceContext->RSSetState(m_rasterState);
+	m_deviceContext->RSSetState(m_rasterState_Default);
 }
 
 void D3DClass::SetRasterState_Nocull()
@@ -691,3 +701,13 @@ void D3DClass::SetRasterState_Nocull()
 	m_deviceContext->RSSetState(m_rasterState_nocull);
 }
 
+void D3DClass::ToggleRasterState_WireFrame(bool toggle)
+{
+	if (toggle){
+		m_deviceContext->RSSetState(m_rasterState_WireFrame);
+	}
+	else
+	{
+		m_deviceContext->RSSetState(m_rasterState_Default);
+	}
+}

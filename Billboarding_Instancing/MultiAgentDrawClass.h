@@ -14,6 +14,8 @@
 #include <fstream>
 #include "GeometryGenerator.h"
 #include "ShaderUtility.h"
+#include "ComputeShaderHelperClass.h"
+
 using namespace std;
 
 
@@ -49,17 +51,33 @@ public:
 	MultiAgentDrawClass(const MultiAgentDrawClass&);
 	~MultiAgentDrawClass();
 
-	bool Initialize(ID3D11Device*, HWND);
+	bool Initialize(ID3D11Device*, ID3D11DeviceContext* device_context, HWND);
 	void Shutdown();
-	void RenderShader(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+
+	bool Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+		float frameTime, float gameTime, XMFLOAT3 camEyePos);
+
+
+	void RenderShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+		XMFLOAT3 camEyePos);
+
+	void RenderComputeShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+		XMFLOAT3 camEyePos);
+	
+
+	void RenderMultipleAgentShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 		XMFLOAT3 camEyePos);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND);
-	bool createInputLayoutDesc(ID3D11Device* device);
+	bool createInputLayoutDesc(ID3D11Device* device );
 	bool createConstantBuffer_TextureBuffer(ID3D11Device* device);
-	bool InitVertextBuffers(ID3D11Device* device);
+	bool InitVertextBuffers(ID3D11Device* device, ID3D11DeviceContext* device_context);
+	bool MultiAgentDrawClass::InitFloorGeometryVertextBuffers(ID3D11Device* device, ID3D11DeviceContext* device_context);
 
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
@@ -75,16 +93,26 @@ private:
 	ID3D11InputLayout* m_layout;
 	ID3D11Buffer* m_matrixBuffer;
 
+	ID3D11VertexShader* m_render_vertexShader;
+	ID3D11PixelShader* m_render_pixelShader;
+	ID3D11GeometryShader* m_render_geometryShader;
+	ID3D11InputLayout* m_render_layout;
+	
+
+
 	// Texture Resource
 	ID3D11SamplerState* m_sampleState;
 	ID3D11ShaderResourceView* m_FloorTextureSRV;
+	ID3D11ShaderResourceView* m_FloorCenterDataSRV;
 	// Buffer data
 	ID3D11Buffer* mShapesVB;
 	ID3D11Buffer* mShapesIB;
-
+	ID3D11Buffer* m_AgentPositionBuffer;
 	// Constant Buffer
 	ID3D11Buffer* m_world_matrix_buffer;
+	ID3D11Buffer* m_Buffer_GridCenterData;
 
+	ID3D11UnorderedAccessView*  m_AgentPosition_URV;
 	//Transformation from local to world Coordinates
 	XMFLOAT4X4 mGridWorld;
 
@@ -105,6 +133,7 @@ private:
 
 	// Custom Classes and Utility
 	ShaderUtility* m_ShaderUtility;
+	ComputeShaderHelperClass* m_computeshader_helper;
 };
 
 #endif

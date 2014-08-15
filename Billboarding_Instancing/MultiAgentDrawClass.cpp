@@ -5,6 +5,9 @@
 #include "MultiAgentDraw_CSCompiled.h"
 #include "MultiAgentDraw_VSCompiled.h"
 #include "MultiAgentDraw_PSCompiled.h"
+#include "MultiAgentRender_GSCompiled.h"
+#include "MultiAgentRender_PSCompiled.h"
+#include "MultiAgentRender_VSCompiled.h"
 
 MultiAgentDrawClass::MultiAgentDrawClass()
 {
@@ -14,6 +17,7 @@ MultiAgentDrawClass::MultiAgentDrawClass()
 	m_layout = 0;
 	m_matrixBuffer = 0;
 	m_sampleState = 0;
+	m_computeshader_helper = new ComputeShaderHelperClass;
 	m_ShaderUtility = new ShaderUtility;
 }
 
@@ -28,7 +32,7 @@ MultiAgentDrawClass::~MultiAgentDrawClass()
 }
 
 
-bool MultiAgentDrawClass::Initialize(ID3D11Device* device, HWND hwnd)
+bool MultiAgentDrawClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* device_context, HWND hwnd)
 {
 	bool result;
 
@@ -39,6 +43,16 @@ bool MultiAgentDrawClass::Initialize(ID3D11Device* device, HWND hwnd)
 	{
 		return false;
 	}
+
+
+
+	InitVertextBuffers(device, device_context);
+
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3) , (8 * 8), nullptr, &m_AgentPositionBuffer);
+
+	m_computeshader_helper->CreateBufferUAV(device, m_AgentPositionBuffer, &m_AgentPosition_URV);
+	// Load Texture for Floor and other stuff
+	m_FloorTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/edited_floor.dds");
 
 	return true;
 }
@@ -80,6 +94,27 @@ bool MultiAgentDrawClass::InitializeShader(ID3D11Device* device, HWND hwnd)
 	}
 
 
+	result = device->CreateGeometryShader(g_render_gshader, sizeof(g_render_gshader), nullptr, &m_render_geometryShader);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Compile and Create VertexShader Object
+	result = device->CreateVertexShader(g_render_vshader, sizeof(g_render_vshader), nullptr, &m_render_vertexShader);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+
+	// Compile and Create PixelShader Object
+	result = device->CreatePixelShader(g_render_pshader, sizeof(g_render_pshader), nullptr, &m_render_pixelShader);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 
 	result = createInputLayoutDesc(device);
 	if (FAILED(result))
@@ -92,11 +127,6 @@ bool MultiAgentDrawClass::InitializeShader(ID3D11Device* device, HWND hwnd)
 	{
 		return false;
 	}
-
-	InitVertextBuffers( device); 
-
-	// Load Texture for Floor and other stuff
-	m_FloorTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/edited_floor.dds"); 
 
 	return true;
 }
@@ -120,49 +150,22 @@ bool MultiAgentDrawClass::createInputLayoutDesc(ID3D11Device* device)
 
 	// Create the vertex input layout.
 	result = device->CreateInputLayout(Basic32, numElements, g_vshader, sizeof(g_vshader), &m_layout);
-
-	if (FAILED(result))
+	
+	//////////////////////////////////////////////////////////////////////////
+	// Layout for Render Agents 
+	const D3D11_INPUT_ELEMENT_DESC renderAgents_DESC[1] =
 	{
-		// If the shader failed to compile it should have writen something to the error message.
-		if (errorMessage)
-		{
-			//	OutputShaderErrorMessage(errorMessage, hwnd, csFilename);
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
 
-			char* compileErrors;
-			unsigned long bufferSize, i;
-			ofstream fout;
+	// Get a count of the elements in the layout.
+	numElements = sizeof(renderAgents_DESC) / sizeof(renderAgents_DESC[0]);
+
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(renderAgents_DESC, numElements, g_render_vshader, sizeof(g_render_vshader), &m_render_layout);
 
 
-			// Get a pointer to the error message text buffer.
-			compileErrors = (char*)(errorMessage->GetBufferPointer());
-
-			// Get the length of the message.
-			bufferSize = errorMessage->GetBufferSize();
-
-			// Open a file to write the error message to.
-			fout.open("shader-error.txt");
-
-			// Write out the error message.
-			for (i = 0; i < bufferSize; i++)
-			{
-				fout << compileErrors[i];
-			}
-
-			// Close the file.
-			fout.close();
-
-			// Release the error message.
-			errorMessage->Release();
-			errorMessage = 0;
-		}
-		// If there was nothing in the error message then it simply could not find the shader file itself.
-		else
-		{
-			//MessageBox(hwnd, csFilename, L"Missing Shader File", MB_OK);
-		}
-		return false;
-	}
-	return result;
+	return true;
 }
 
 
@@ -216,8 +219,18 @@ bool MultiAgentDrawClass::createConstantBuffer_TextureBuffer(ID3D11Device* devic
 	return true;
 }
 
-bool MultiAgentDrawClass::InitVertextBuffers(ID3D11Device* device)
+bool MultiAgentDrawClass::InitVertextBuffers(ID3D11Device* device, ID3D11DeviceContext* device_context)
 {
+	MultiAgentDrawClass::InitFloorGeometryVertextBuffers(device, device_context);
+
+	return true;
+}
+
+
+bool MultiAgentDrawClass::InitFloorGeometryVertextBuffers(ID3D11Device* device, ID3D11DeviceContext* device_context)
+{
+	const int GRID_SIZE = 8;
+
 	HRESULT result;
 	GeometryGenerator::MeshData box;
 	GeometryGenerator::MeshData grid;
@@ -226,7 +239,7 @@ bool MultiAgentDrawClass::InitVertextBuffers(ID3D11Device* device)
 
 	GeometryGenerator geoGen;
 	geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
-	geoGen.CreateGrid(20.0f, 30.0f, 6, 4, grid);
+	geoGen.CreateGrid(20.0f, 20.0f, GRID_SIZE + 1, GRID_SIZE+1, grid);
 	geoGen.CreateSphere(0.5f, 20, 20, sphere);
 	geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20, cylinder);
 
@@ -334,14 +347,161 @@ bool MultiAgentDrawClass::InitVertextBuffers(ID3D11Device* device)
 		return false;
 	}
 
+	std::cout << "GridSize Original \n";
+	////////////////////////////////////////////////////////////////////////////////////////
+	// Create the texture from Center data for the Grid Cells
+	for (int i = 0; i < GRID_SIZE *GRID_SIZE; i++){
+		std::cout << " x_c::" << grid.Centers[i].x << " y_c::" << grid.Centers[i].y << " z_c::" << grid.Centers[i].z << "\n";
+	}
+
+	XMFLOAT3 tempArray[GRID_SIZE*GRID_SIZE];
+	for (int i = 0; i < GRID_SIZE*GRID_SIZE; i++)
+	{
+		tempArray[i] = grid.Centers[i];
+	}
+	
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), grid.Centers.size(), &tempArray, &m_Buffer_GridCenterData);
+	m_computeshader_helper->CreateBufferSRV(device, m_Buffer_GridCenterData, &m_FloorCenterDataSRV);
+	/////////////////////////////////////////////////////////////////////////////////////////
 	return true;
 }
 
-void MultiAgentDrawClass::RenderShader(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+bool MultiAgentDrawClass::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+	float frameTime, float gameTime, XMFLOAT3 camEyePos)
+{
+	RenderComputeShader(device, deviceContext,  worldMatrix,
+		 viewMatrix,  projectionMatrix, camEyePos);
+
+	RenderMultipleAgentShader(device, deviceContext, worldMatrix,
+		viewMatrix, projectionMatrix, camEyePos);
+
+
+	RenderShader(device, deviceContext, worldMatrix,
+		viewMatrix, projectionMatrix,camEyePos);
+
+	return true;
+}
+
+
+
+void MultiAgentDrawClass::RenderComputeShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+	XMFLOAT3 camEyePos)
+{
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// Dispatch ComputeShader
+	ID3D11ShaderResourceView* aRViews[1] = { m_FloorCenterDataSRV };
+
+	ID3D11UnorderedAccessView* aURViews[1] = { m_AgentPosition_URV };
+	// Now render the prepared buffers with the shader.
+	//deviceContext->CSSetConstantBuffers(0, 1, &m_BufConstantParameters);
+	deviceContext->CSSetShaderResources(0, 1, aRViews);
+	deviceContext->CSSetUnorderedAccessViews(0, 1, aURViews, nullptr);
+	deviceContext->CSSetShader(m_computeShader, nullptr, 0);
+
+	deviceContext->Dispatch(1, 1, 1);
+
+	deviceContext->CSSetShader(nullptr, nullptr, 0);
+
+	ID3D11UnorderedAccessView* ppUAViewnullptr[1] = { nullptr };
+	deviceContext->CSSetUnorderedAccessViews(0, 1, ppUAViewnullptr, nullptr);
+
+	ID3D11ShaderResourceView* ppSRVnullptr[1] = { nullptr };
+	deviceContext->CSSetShaderResources(0, 1, ppSRVnullptr);
+
+	ID3D11Buffer* ppCBnullptr[1] = { nullptr };
+	deviceContext->CSSetConstantBuffers(0, 1, ppCBnullptr);
+	/////////////////////////////////////////////////////////////////////////////////////
+	///// Check Output
+
+	//ID3D11Buffer* debugbuf2 = m_computeshader_helper->CreateAndCopyToDebugBuf(device, deviceContext, m_AgentPositionBuffer);
+	//D3D11_MAPPED_SUBRESOURCE MappedResource2;
+	//XMFLOAT3 *gridNodeListGPU;
+	//deviceContext->Map(debugbuf2, 0, D3D11_MAP_READ, 0, &MappedResource2);
+
+	//// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
+	//// This is also a common trick to debug CS programs.
+	//gridNodeListGPU = (XMFLOAT3*)MappedResource2.pData;
+
+	//cout << " Center Map:\n";
+
+	//XMFLOAT3 nodes2[65];
+	//for (int i = 0; i < 64; i++)
+	//{
+	//	nodes2[i] = gridNodeListGPU[i];
+
+	//	cout << i << ":X= " << gridNodeListGPU[i].x << "Y=" << gridNodeListGPU[i].y << " Z=" <<
+	//		gridNodeListGPU[i].z << "\n";
+	//}
+	//deviceContext->Unmap(debugbuf2, 0);
+
+	//debugbuf2->Release();
+	//debugbuf2 = 0;
+}
+void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 	XMFLOAT3 camEyePos)
 {
 	bool result;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// Render Vertex, Pixel shader
+
+	ID3D11Buffer* bufferArrayNull[1] = { 0 };
+	//XMMATRIX* worldMatrix1 = &XMMatrixTranslation(camEyePos.x, camEyePos.y, camEyePos.z);
+	D3DXMATRIX worldMatrix1 = *(new D3DXMATRIX);
+
+	//D3DXMatrixTranslation(&worldMatrix1, camEyePos.x, camEyePos.y, camEyePos.z);
+
+	//	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
+
+	D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
+	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+
+
+
+	SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
+
+	UINT stride = sizeof(XMFLOAT3);
+	UINT offset = 0;
+
+
+
+	deviceContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	deviceContext->IASetVertexBuffers(0, 1, &m_AgentPositionBuffer, &stride, &offset);
+	//deviceContext->IASetIndexBuffer(mShapesIB, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(m_layout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(m_render_vertexShader, NULL, 0);
+
+	deviceContext->GSSetShader(NULL, NULL, 0);
+	// deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+	deviceContext->SOSetTargets(1, bufferArrayNull, 0);
+	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+	deviceContext->Draw(63, 0);
+
+	return;
+}
+
+
+void MultiAgentDrawClass::RenderShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+	XMFLOAT3 camEyePos)
+{
+	bool result;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	// Render Vertex, Pixel shader
 
 	ID3D11Buffer* bufferArrayNull[1] = { 0 };
 	//XMMATRIX* worldMatrix1 = &XMMatrixTranslation(camEyePos.x, camEyePos.y, camEyePos.z);
@@ -361,6 +521,8 @@ void MultiAgentDrawClass::RenderShader(ID3D11DeviceContext* deviceContext, D3DXM
 
 	UINT stride = sizeof(Basic32);
 	UINT offset = 0;
+
+
 
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -407,8 +569,8 @@ bool MultiAgentDrawClass::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
-	dataPtr->gridScaling = XMMatrixScaling(6.0f, 8.0f, 1.0f); //TODO: Transform Floor
-
+	dataPtr->gridScaling = XMMatrixScaling(8.0f, 8.0f, 1.0f); //TODO: Transform Floor
+	
 	//cout<< "CamPos||X:" <<camEyePos.x << "||Y:"<<camEyePos.y <<"||Z:"<<camEyePos.z<<"||\n";
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_world_matrix_buffer, 0);

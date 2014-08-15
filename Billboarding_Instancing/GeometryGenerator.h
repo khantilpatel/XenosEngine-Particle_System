@@ -17,6 +17,7 @@
 #include <xnamath.h>
 //#include "MathHelper.h"
 #include <vector>
+#include <iostream>
 
 class GeometryGenerator
 {
@@ -44,6 +45,7 @@ public:
 	{
 		std::vector<Vertex> Vertices;
 		std::vector<UINT> Indices;
+		std::vector<XMFLOAT3> Centers;
 	};
 
 		///<summary>

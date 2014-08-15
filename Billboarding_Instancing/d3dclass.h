@@ -59,6 +59,7 @@ public:
 
 	void SetRasterState_Nocull();
 	void SetRasterState_Default();
+	void ToggleRasterState_WireFrame(bool toggle);
 
 
 private:
@@ -78,11 +79,13 @@ private:
 	ID3D11DepthStencilView* m_depthStencilView;
 	
 
-	ID3D11RasterizerState* m_rasterState;
+	ID3D11RasterizerState* m_rasterState_Default;
 	ID3D11RasterizerState* m_rasterState_nocull;
+	ID3D11RasterizerState* m_rasterState_WireFrame;
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;
+
 	ID3D11BlendState* m_alphaEnableBlendingState;
 	ID3D11BlendState* m_alphaDisableBlendingState;
 	ID3D11BlendState* m_additiveEnableBlendingState;

@@ -1,7 +1,6 @@
 #include "GeometryGenerator.h"
 
 
-
 void GeometryGenerator::CreateSphere(float radius, UINT sliceCount, UINT stackCount, MeshData& meshData)
 {
 	meshData.Vertices.clear();
@@ -526,7 +525,7 @@ void GeometryGenerator::CreateGrid(float width, float depth, UINT m, UINT n, Mes
 {
 	UINT vertexCount = m*n;
 	UINT faceCount = (m - 1)*(n - 1) * 2;
-
+	UINT centerCount = (m - 1) * (n - 1);
 	//
 	// Create the vertices.
 	//
@@ -541,6 +540,8 @@ void GeometryGenerator::CreateGrid(float width, float depth, UINT m, UINT n, Mes
 	float dv = 1.0f / (m - 1);
 
 	meshData.Vertices.resize(vertexCount);
+	meshData.Centers.resize(centerCount);
+	int centerCounter = 0;
 	for (UINT i = 0; i < m; ++i)
 	{
 		float z = halfDepth - i*dz;
@@ -552,9 +553,31 @@ void GeometryGenerator::CreateGrid(float width, float depth, UINT m, UINT n, Mes
 			meshData.Vertices[i*n + j].Normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			meshData.Vertices[i*n + j].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
 
+			std::cout << "X:" << x << "z:" << z << "\n";
 			// Stretch texture over grid.
 			meshData.Vertices[i*n + j].TexC.x = j*du;
 			meshData.Vertices[i*n + j].TexC.y = i*dv;
+
+			if (i < m - 1)
+			{
+				float x_c, z_c;
+
+				if (x >= -halfWidth + dx)
+				{
+					x_c = (meshData.Vertices[i*n + (j-1)].Position.x + meshData.Vertices[i*n + j].Position.x) / 2;
+
+					z_c = ((halfDepth - i*dz) + (halfDepth - (i + 1)*dz)) / 2;
+
+					meshData.Centers[centerCounter].x = x_c;
+					meshData.Centers[centerCounter].y = 0.0f;
+					meshData.Centers[centerCounter].z = z_c;
+					centerCounter++;
+
+					//std::cout << "\n x_c::" << x_c << " z_c::" << z_c << "\n";
+				//	y_c = 
+				}
+				
+			}
 		}
 	}
 

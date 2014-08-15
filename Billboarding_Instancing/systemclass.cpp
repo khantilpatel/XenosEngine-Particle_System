@@ -250,6 +250,20 @@ bool SystemClass::HandleInput(float frameTime)
 
 	keyDown = m_Input->IsPgDownPressed();
 	m_Position->LookDownward(keyDown);
+
+	//EnableDisable WireFrame
+	keyDown = m_Input->IsWPressed();
+	if (keyDown)
+	{
+		m_Graphics->toggle_RasterState_WireFrame();
+	}
+
+	//Start MultiAgents  Pathfinding
+	keyDown = m_Input->IsSpaceBarPressed();
+	if (keyDown)
+	{
+
+	}
 	
 	return true;
 }

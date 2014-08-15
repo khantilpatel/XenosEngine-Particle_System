@@ -24,6 +24,7 @@ GraphicsClass::GraphicsClass()
 	m_AStar_Type2_ShaderClass = 0;
 
 	m_MultiAgentDrawClass = 0;
+	toggle_WireFrame_Mode = false;
 
 }
 
@@ -38,7 +39,20 @@ GraphicsClass::GraphicsClass(const GraphicsClass& other)
 GraphicsClass::~GraphicsClass()
 {
 }
-
+void GraphicsClass::toggle_RasterState_WireFrame()
+{
+	if (toggle_WireFrame_Mode)
+	{
+		m_D3D->ToggleRasterState_WireFrame(false);
+		toggle_WireFrame_Mode = false;
+	}
+	else
+	{
+		m_D3D->ToggleRasterState_WireFrame(true);
+		toggle_WireFrame_Mode = true;
+	}
+	
+}
 
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
@@ -202,7 +216,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	
 
 	m_MultiAgentDrawClass = new MultiAgentDrawClass;
-	result = m_MultiAgentDrawClass->Initialize(m_D3D->GetDevice(), hwnd);
+	result = m_MultiAgentDrawClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(),hwnd);
 	if (!result)
 	{
 
@@ -280,8 +294,8 @@ bool GraphicsClass::Render()
 	m_D3D->EnableDepthStencilState();
 	m_D3D->SetRasterState_Default();*/
 	/////////////////////////////////////////////////////////////////////
-	m_MultiAgentDrawClass->RenderShader(m_D3D->GetDeviceContext(), worldMatrix, viewMatrix,
-		projectionMatrix, m_Camera->GetPosition_XM());
+	m_MultiAgentDrawClass->Render(m_D3D->GetDevice(),m_D3D->GetDeviceContext(), worldMatrix, viewMatrix,
+		projectionMatrix, m_frameTime / 1000, m_TotalTime / 1000, m_Camera->GetPosition_XM());
 	///////////////////////////////////////////////////////////////////
 	// RENDER FIRE PARTICLES
 	/////////////////////////////////////////////////////////////////////

@@ -153,6 +153,9 @@
     <ClCompile Include="ComputeShaderSortMain.cpp">
       <Filter>shaders\ComputeShaders</Filter>
     </ClCompile>
+    <ClCompile Include="AStar_Type3_ShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="textureshaderclass.h">
@@ -236,6 +239,9 @@
     <ClInclude Include="MultiAgentDrawClass.h">
       <Filter>class-shaders\Multi Agents</Filter>
     </ClInclude>
+    <ClInclude Include="AStar_Type3_ShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FireShader.hlsl">
@@ -259,6 +265,8 @@
     <None Include="texture.vs">
       <Filter>shaders\DrawShaders</Filter>
     </None>
+    <None Include="..\..\GPGPU-AI\Engine\Activity1.nvact" />
+    <None Include="GPGPU-AI.nvact" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="seafloor.dds">
@@ -306,6 +314,15 @@
       <Filter>class-shaders\Multi Agents</Filter>
     </FxCompile>
     <FxCompile Include="MultiAgentDraw_PS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentRender_VS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentRender_PS.hlsl">
+      <Filter>class-shaders\Multi Agents</Filter>
+    </FxCompile>
+    <FxCompile Include="MultiAgentRender_GS.hlsl">
       <Filter>class-shaders\Multi Agents</Filter>
     </FxCompile>
   </ItemGroup>
