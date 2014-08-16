@@ -297,7 +297,7 @@ bool FireParticalSystemShader::RenderShader_Draw(ID3D11DeviceContext* deviceCont
 
     // Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_vertexShader_Draw, NULL, 0);
-	deviceContext->GSSetShader(m_geometryShader_Draw, NULL, 0);
+	//deviceContext->GSSetShader(m_geometryShader_Draw, NULL, 0);
    // deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 	
 	deviceContext->PSSetShader(m_pixelShader_Draw, NULL, 0);

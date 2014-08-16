@@ -46,7 +46,9 @@ bool MultiAgentDrawClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* 
 	
 	InitVertextBuffers(device, device_context);
 
-	m_computeshader_helper->CreateRawBuffer(device, sizeof(XMFLOAT3)* (8 * 8), nullptr, &m_AgentPositionBuffer);
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), (8 * 8), nullptr,  &m_AgentPositionBuffer);
+
+	m_computeshader_helper->CreateVertexBuffer(device, sizeof(XMFLOAT3), (8 * 8), nullptr, &m_AgentPositionDrawBuffer);
 
 	m_computeshader_helper->CreateBufferUAV(device, m_AgentPositionBuffer, &m_AgentPosition_URV);
 	// Load Texture for Floor and other stuff
@@ -465,29 +467,45 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
 
-
-
+	////////////////////////////////////////////////////////////////////////////////////
+	// Set vertex Shader
+	deviceContext->CopyResource(m_AgentPositionDrawBuffer, m_AgentPositionBuffer);
+	
 	deviceContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	deviceContext->IASetVertexBuffers(0, 1, NULL, 0, 0);
+	//deviceContext->P(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	deviceContext->IASetVertexBuffers(0, 1, &m_AgentPositionDrawBuffer, &stride, &offset);
 	//deviceContext->IASetIndexBuffer(mShapesIB, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(NULL);
+	deviceContext->IASetInputLayout(m_render_layout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_render_vertexShader, NULL, 0);
-
+	/////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// Set Geometry Shader
+	deviceContext->GSSetConstantBuffers(0, 1, &m_world_matrix_buffer);
 	deviceContext->GSSetShader(m_render_geometryShader, NULL, 0);
-	// deviceContext->PSSetShader(m_pixelShader, NULL, 0);
-	deviceContext->SOSetTargets(1, bufferArrayNull, 0);
-	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
+	////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// Set vertex Shader
+	ID3D11Buffer* bufferArray[1] = { 0 };
 
+	deviceContext->SOSetTargets(1, bufferArray, 0);
+
+	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
 	// Set the sampler state in the pixel shader.
 	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+	////////////////////////////////////////////////////////////////////////////////////
 
-	deviceContext->Draw(63, 0);
 
+	deviceContext->Draw(64, 0);
+
+
+	deviceContext->GSSetConstantBuffers(0, 1, bufferArray);
+	deviceContext->GSSetShader(NULL, NULL, 0);
 	return;
 }
 
@@ -535,7 +553,7 @@ void MultiAgentDrawClass::RenderShader(ID3D11Device* device, ID3D11DeviceContext
 
 	deviceContext->GSSetShader(NULL, NULL, 0);
 	// deviceContext->PSSetShader(m_pixelShader, NULL, 0);
-	deviceContext->SOSetTargets(1, bufferArrayNull, 0);
+	//deviceContext->SOSetTargets(1, bufferArrayNull, 0);
 	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.

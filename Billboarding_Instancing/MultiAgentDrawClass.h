@@ -108,6 +108,7 @@ private:
 	ID3D11Buffer* mShapesVB;
 	ID3D11Buffer* mShapesIB;
 	ID3D11Buffer* m_AgentPositionBuffer;
+	ID3D11Buffer* m_AgentPositionDrawBuffer;
 	// Constant Buffer
 	ID3D11Buffer* m_world_matrix_buffer;
 	ID3D11Buffer* m_Buffer_GridCenterData;

@@ -20,9 +20,12 @@ public:
 
 	HRESULT CreateConstantBuffer(ID3D11Device* pDevice, UINT uElementSize,
 		UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
+
 	HRESULT CreateStructuredBuffer(ID3D11Device* pDevice, UINT uElementSize,
 		UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
 
+	HRESULT CreateVertexBuffer(ID3D11Device* pDevice, UINT uElementSize,
+		UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut);
 
 	HRESULT CreateRawBuffer(ID3D11Device* pDevice, UINT uSize, void* pInitData, ID3D11Buffer** ppBufOut);
 

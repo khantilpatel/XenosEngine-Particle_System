@@ -56,7 +56,27 @@ HRESULT ComputeShaderHelperClass::CreateStructuredBuffer(ID3D11Device* pDevice, 
 		return pDevice->CreateBuffer(&desc, nullptr, ppBufOut);
 }
 
+HRESULT ComputeShaderHelperClass::CreateVertexBuffer(ID3D11Device* pDevice, UINT uElementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufOut)
+{
+	*ppBufOut = nullptr;
 
+	D3D11_BUFFER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.CPUAccessFlags = 0;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	desc.ByteWidth = uElementSize * uCount;
+	desc.MiscFlags = 0;
+
+	if (pInitData)
+	{
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = pInitData;
+		return pDevice->CreateBuffer(&desc, &InitData, ppBufOut);
+	}
+	else
+		return pDevice->CreateBuffer(&desc, nullptr, ppBufOut);
+}
 //--------------------------------------------------------------------------------------
 // Create Raw Buffer
 //--------------------------------------------------------------------------------------

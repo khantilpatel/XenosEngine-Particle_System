@@ -17,9 +17,9 @@ float4 main( float3 posIn : POSITION ) : SV_POSITION
 	float4 pos = float4(posIn, 1.0f);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
-	pos = mul(pos, worldMatrix);
-	pos = mul(pos, viewMatrix);
-	pos = mul(pos, projectionMatrix);
+	/*element.position = mul(element.position, worldMatrix);
+	element.position = mul(element.position, viewMatrix);
+	element.position = mul(element.position, projectionMatrix);*/
 
 
 	
