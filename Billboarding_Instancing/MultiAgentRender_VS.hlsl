@@ -14,7 +14,6 @@ cbuffer MatrixBuffer
 
 float4 main( float3 posIn : POSITION ) : SV_POSITION
 {
-
 	float4 pos = float4(posIn, 1.0f);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.

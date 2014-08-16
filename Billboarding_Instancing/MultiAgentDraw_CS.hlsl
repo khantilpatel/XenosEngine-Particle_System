@@ -16,5 +16,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
 			counter++;
 		}
 	}
+
 	bufferOut[0].x = counter;
 }

@@ -43,12 +43,10 @@ bool MultiAgentDrawClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* 
 	{
 		return false;
 	}
-
-
-
+	
 	InitVertextBuffers(device, device_context);
 
-	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3) , (8 * 8), nullptr, &m_AgentPositionBuffer);
+	m_computeshader_helper->CreateRawBuffer(device, sizeof(XMFLOAT3)* (8 * 8), nullptr, &m_AgentPositionBuffer);
 
 	m_computeshader_helper->CreateBufferUAV(device, m_AgentPositionBuffer, &m_AgentPosition_URV);
 	// Load Texture for Floor and other stuff
@@ -155,7 +153,7 @@ bool MultiAgentDrawClass::createInputLayoutDesc(ID3D11Device* device)
 	// Layout for Render Agents 
 	const D3D11_INPUT_ELEMENT_DESC renderAgents_DESC[1] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	// Get a count of the elements in the layout.
@@ -471,16 +469,16 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 
 	deviceContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	deviceContext->IASetVertexBuffers(0, 1, &m_AgentPositionBuffer, &stride, &offset);
+	deviceContext->IASetVertexBuffers(0, 1, NULL, 0, 0);
 	//deviceContext->IASetIndexBuffer(mShapesIB, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(m_layout);
+	deviceContext->IASetInputLayout(NULL);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_render_vertexShader, NULL, 0);
 
-	deviceContext->GSSetShader(NULL, NULL, 0);
+	deviceContext->GSSetShader(m_render_geometryShader, NULL, 0);
 	// deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 	deviceContext->SOSetTargets(1, bufferArrayNull, 0);
 	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
