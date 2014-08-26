@@ -55,6 +55,12 @@ void GraphicsClass::toggle_RasterState_WireFrame()
 	
 }
 
+void GraphicsClass::toggle_RestartPathFinding(){
+	
+	executeOnceAStar_Type1 = true;
+
+}
+
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
@@ -92,105 +98,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the skybox object.", L"Error", MB_OK);
-		return false;
-	}
-	// Set the initial position of the camera.
-	//	
-	// Create the model object.
-	m_Model = new ModelClass;
-	if(!m_Model)
-	{
-		return false;
-	}
-
-	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), L"seafloor.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the texture shader object.
-	m_TextureShader = new TextureShaderClass;
-	if(!m_TextureShader)
-	{
-		return false;
-	}
-
-	// Initialize the texture shader object.
-	result = m_TextureShader->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
-		return false;
-	}
-
-	
-	// Create the texture shader object.
-	m_SimpleShader = new SimpleShaderClass;
-	if(!m_SimpleShader)
-	{
-		return false;
-	}
-
-	// Initialize the texture shader object.
-	/*result = m_SimpleShader->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the simple shader object.", L"Error", MB_OK);
-		return false;
-	}*/
-
-	// Create the particle shader object.
-	m_ParticleShader = new ParticleShaderClass;
-	if(!m_ParticleShader)
-	{
-		return false;
-	}
-
-	// Initialize the particle shader object.
-	result = m_ParticleShader->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the particle shader object.", L"Error", MB_OK);
-		return false;
-	}
-
-
-	// Create the particle system object.
-	m_ParticleSystem = new ParticleSystemClass;
-	if(!m_ParticleSystem)
-	{
-		return false;
-	}
-
-	// Initialize the particle system object.
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"star.dds");
-	if(!result)
-	{
-
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_FireParticleShader = new FireParticalSystemShader;
-		// Initialize the particle system object.
-	result = m_FireParticleShader->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
-	{
-
-		MessageBox(hwnd, L"Could not initialize the texture shader object", L"Error", MB_OK);
-		return false;
-	}
-
-	m_RainParticleSystem = new RainParticleSystem;
-		// Initialize the particle system object.
-	result = m_RainParticleSystem->Initialize(m_D3D->GetDevice(), hwnd);
-	if(!result)
-	{
-
-		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -235,7 +142,7 @@ bool GraphicsClass::UpdateFrame(float frameTime, float totalTime, float posX, fl
 	m_Camera->SetRotation(rotX, rotY, rotZ);
 
 		// Run the frame processing for the particle system.
-	m_ParticleSystem->UpdateFrame((frameTime), m_D3D->GetDeviceContext());
+	//m_ParticleSystem->UpdateFrame((frameTime), m_D3D->GetDeviceContext());
 
 	// Redsfnder the graphics scene.
 	result = Render();
@@ -248,7 +155,7 @@ bool GraphicsClass::UpdateFrame(float frameTime, float totalTime, float posX, fl
 	return true;
 }
 
-
+int counter = 0;
 bool GraphicsClass::Render()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
@@ -326,14 +233,18 @@ bool GraphicsClass::Render()
 	
 
 	 if (executeOnceAStar_Type1){
+		// m_AStar_Type1_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), nullptr);
+		// m_MultiAgentDrawClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), nullptr);
+
 		 m_AStar_Type1_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
 		 executeOnceAStar_Type1 = false;
+		
 	 }
-
-	int  *agentRenderPathList;
+	
+	/*int  *agentRenderPathList;
 	AStar_Type1_ShaderClass::AgentRender *agentRenderList;
 	agentRenderList = m_AStar_Type1_ShaderClass->agentRenderList;
-	agentRenderPathList = m_AStar_Type1_ShaderClass->agentRenderPathList;
+	agentRenderPathList = m_AStar_Type1_ShaderClass->agentRenderPathList;*/
 
 	/////////////////////////////////////////////////////////////////////
 
@@ -428,45 +339,6 @@ bool GraphicsClass::Render()
 
 void GraphicsClass::Shutdown()
 {
-		// Release the particle system object.
-	if(m_ParticleSystem)
-	{
-		m_ParticleSystem->Shutdown();
-		delete m_ParticleSystem;
-		m_ParticleSystem = 0;
-	}
-
-	// Release the particle shader object.
-	if(m_ParticleShader)
-	{
-		m_ParticleShader->Shutdown();
-		delete m_ParticleShader;
-		m_ParticleShader = 0;
-	}
-
-	// Release the texture shader object.
-	if(m_TextureShader)
-	{
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
-	}
-
-	// Release the simple shader object.
-	if(m_SimpleShader)
-	{
-		m_SimpleShader->Shutdown();
-		delete m_SimpleShader;
-		m_SimpleShader = 0;
-	}
-
-	// Release the model object.
-	if(m_Model)
-	{
-		m_Model->Shutdown();
-		delete m_Model;
-		m_Model = 0;
-	}
 
 	// Release the camera object.
 	if(m_Camera)

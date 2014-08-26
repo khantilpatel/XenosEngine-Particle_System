@@ -46,14 +46,14 @@ bool MultiAgentDrawClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* 
 	
 	InitVertextBuffers(device, device_context);
 
-	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), 4096, nullptr,  &m_AgentPositionBuffer);
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), 4096, nullptr, &m_AgentPositionBuffer);
 
 	m_computeshader_helper->CreateVertexBuffer(device, sizeof(XMFLOAT3), 4096, nullptr, &m_AgentPositionDrawBuffer);
 
 	m_computeshader_helper->CreateBufferUAV(device, m_AgentPositionBuffer, &m_AgentPosition_URV);
 	// Load Texture for Floor and other stuff
 	m_FloorTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/edited_floor.dds");
-
+	m_CollisionWallSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/stone.dds");
 	m_CubeTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/cube.jpg");
 
 	return true;
@@ -157,7 +157,7 @@ bool MultiAgentDrawClass::createInputLayoutDesc(ID3D11Device* device)
 	// Layout for Render Agents 
 	const D3D11_INPUT_ELEMENT_DESC renderAgents_DESC[1] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	// Get a count of the elements in the layout.
@@ -364,6 +364,7 @@ bool MultiAgentDrawClass::InitFloorGeometryVertextBuffers(ID3D11Device* device, 
 	
 	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), grid.Centers.size(), &tempArray, &m_Buffer_GridCenterData);
 	m_computeshader_helper->CreateBufferSRV(device, m_Buffer_GridCenterData, &m_FloorCenterDataSRV);
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	return true;
 }
@@ -458,26 +459,13 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,	XMFLOAT3 camEyePos)
 {
 	bool result;
-
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	// Render Vertex, Pixel shader
 
 	ID3D11Buffer* bufferArrayNull[1] = { 0 };
-	//XMMATRIX* worldMatrix1 = &XMMatrixTranslation(camEyePos.x, camEyePos.y, camEyePos.z);
+
 	D3DXMATRIX worldMatrix1 = *(new D3DXMATRIX);
-
-	//D3DXMatrixTranslation(&worldMatrix1, camEyePos.x, camEyePos.y, camEyePos.z);
-
-	//	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
-
-	/*D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);*/
-
-
-
-	//SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
-
+	
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
 
@@ -506,14 +494,14 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 	////////////////////////////////////////////////////////////////////////////////////
 	// Set vertex Shader
 	ID3D11Buffer* bufferArray[1] = { 0 };
-
+	ID3D11ShaderResourceView* aRTextureViews[1] = { m_CubeTextureSRV };
 	deviceContext->SOSetTargets(1, bufferArray, 0);
-	deviceContext->PSSetShaderResources(0, 1, &m_CubeTextureSRV);
+	deviceContext->PSSetShaderResources(0, 1, aRTextureViews);
 	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
 	// Set the sampler state in the pixel shader.
 	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 	////////////////////////////////////////////////////////////////////////////////////
-	deviceContext->Draw(4096, 0);
+	deviceContext->Draw(3200, 0);
 
 	deviceContext->GSSetConstantBuffers(0, 1, bufferArray);
 	deviceContext->GSSetShader(NULL, NULL, 0);
@@ -534,17 +522,6 @@ void MultiAgentDrawClass::RenderShader(ID3D11Device* device, ID3D11DeviceContext
 	//XMMATRIX* worldMatrix1 = &XMMatrixTranslation(camEyePos.x, camEyePos.y, camEyePos.z);
 	D3DXMATRIX worldMatrix1 = *(new D3DXMATRIX);
 
-	//D3DXMatrixTranslation(&worldMatrix1, camEyePos.x, camEyePos.y, camEyePos.z);
-
-	//	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
-
-	//D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
-	//D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	//D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
-
-
-
-	//SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
 
 	UINT stride = sizeof(Basic32);
 	UINT offset = 0;

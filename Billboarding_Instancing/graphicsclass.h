@@ -45,6 +45,7 @@ public:
 	void Shutdown();
 	bool UpdateFrame(float,float, float, float, float, float, float, float);
 	void toggle_RasterState_WireFrame();
+	void toggle_RestartPathFinding();
 	float m_frameTime;
 	float m_TotalTime;
 	bool toggle_WireFrame_Mode;

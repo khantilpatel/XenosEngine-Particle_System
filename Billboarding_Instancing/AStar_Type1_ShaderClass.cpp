@@ -72,12 +72,6 @@ bool AStar_Type1_ShaderClass::InitializeShader(ID3D11Device* device, ID3D11Devic
 	//result = D3DX11CompileFromFile(csFilename, NULL, NULL, "main", "cs_5_0", D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 	//	&computeShaderBuffer, &errorMessage, NULL);
 
-
-
-
-
-
-
 	// Create the vertex shader from the buffer.
 	//result = device->CreateComputeShader(computeShaderBuffer->GetBufferPointer(), computeShaderBuffer->GetBufferSize(),
 	//	NULL, &m_computeShader);
@@ -141,10 +135,21 @@ bool AStar_Type1_ShaderClass::InitializeShader(ID3D11Device* device, ID3D11Devic
 
 	return true;
 }
+float RandomFloat(float min, float max)
+{
+	// this  function assumes max > min, you may want 
+	// more robust error checking for a non-debug build
+	//assert(max > min);
+	float random = ((float)rand()) / (float)RAND_MAX;
 
+	// generate (in your case) a float between 0 and (4.5-.78)
+	// then add .78, giving you a float between .78 and 4.5
+	float range = max - min;
+	return (random*range) + min;
+}
 bool AStar_Type1_ShaderClass::createConstantBuffer(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
-
+	
 	//for ( int i = 0; i < NUM_ELEMENTS; ++i ) 
 	//{
 	//	// g_vBuf0[i] = i;
@@ -153,46 +158,139 @@ bool AStar_Type1_ShaderClass::createConstantBuffer(ID3D11Device* device, ID3D11D
 	//	g_vBuf1[i].f = (float)i;
 	//}
 
-	
+	float randomFactor_Min = -1;
+	float randomFactor_Max = 1;
+
 	Agent agentList[NUM_AGENTS];
 
 	Agent a1;
 
-	int2 sourceNode;
-	sourceNode.x1 = 0;
-	sourceNode.y1 = 4;
+	int agentsCount = 0;
+	for (int j = 0; j < 8; j++){
+		int2 sourceNode;
+		sourceNode.x1 = 0;
+		sourceNode.y1 = j;
 
-	int2 targetNode;
-	targetNode.x1 = 6;
-	targetNode.y1 = 4;
+		int2 targetNode;
+		targetNode.x1 = 7;
+		targetNode.y1 = j;
+		a1.sourceLoc = sourceNode;
+		a1.targetLoc = targetNode;
 
+		for (int i = 0; i < 100; i++)
+		{
+			a1.id = agentsCount;
+			agentList[agentsCount] = a1;
+			AgentRender agentRender;
+			agentRender.agentId = agentsCount;
+			agentRender.sourceLoc = sourceNode;
+			agentRender.currentInterpolationId = 0;
+			agentRender.pathCount = 0;
+			agentRender.status = 0;
+			agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
+			agentRender.randomFactor_X = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRender.randomFactor_Y = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRenderList[agentsCount] = agentRender;
+			agentsCount = agentsCount + 1;
 
-	a1.sourceLoc = sourceNode;
-	a1.targetLoc = targetNode;
+		}		
+	}
 
+	// agentsCount = 800;
+	for (int j = 0; j < 8; j++){
+		int2 sourceNode;
+		sourceNode.x1 = 1;
+		sourceNode.y1 = j;
 
-	for (int i = 0; i < NUM_AGENTS; i++)
-	{
-		a1.id = i;
-		agentList[i] = a1;
-		AgentRender agentRender;
-		agentRender.agentId = i;
-		agentRender.sourceLoc = sourceNode;
-		agentRender.currentInterpolationId = 0;
-		agentRender.pathCount = 0;
-		agentRender.status = 0;
-		agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
-		agentRenderList[i] = agentRender;
+		int2 targetNode;
+		targetNode.x1 = 6;
+		targetNode.y1 = j;
+		a1.sourceLoc = sourceNode;
+		a1.targetLoc = targetNode;
+
+		for (int i = 0; i < 100; i++)
+		{
+			a1.id = agentsCount;
+			agentList[agentsCount] = a1;
+			AgentRender agentRender;
+			agentRender.agentId = agentsCount;
+			agentRender.sourceLoc = sourceNode;
+			agentRender.currentInterpolationId = 0;
+			agentRender.pathCount = 0;
+			agentRender.status = 0;
+			agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
+			agentRender.randomFactor_X = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRender.randomFactor_Y = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRenderList[agentsCount] = agentRender;
+			agentsCount = agentsCount + 1;
+		}
+		
+	}
+
+	// agentsCount = 1600;
+	 for (int j = 0; j < 8; j++){
+		int2 sourceNode;
+		sourceNode.x1 = 7;
+		sourceNode.y1 = j;
+
+		int2 targetNode;
+		targetNode.x1 = 0;
+		targetNode.y1 = j;
+		a1.sourceLoc = sourceNode;
+		a1.targetLoc = targetNode;
+
+		for (int i = 0; i < 100; i++)
+		{
+			a1.id = agentsCount;
+			agentList[agentsCount] = a1;
+			AgentRender agentRender;
+			agentRender.agentId = agentsCount;
+			agentRender.sourceLoc = sourceNode;
+			agentRender.currentInterpolationId = 0;
+			agentRender.pathCount = 0;
+			agentRender.status = 0;
+			agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
+			agentRender.randomFactor_X = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRender.randomFactor_Y = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRenderList[agentsCount] = agentRender;
+			agentsCount = agentsCount + 1;
+		}
+		
+	}
+
+	// agentsCount = 2400;
+	 for (int j = 0; j < 8; j++){
+		int2 sourceNode;
+		sourceNode.x1 = 6;
+		sourceNode.y1 = j;
+
+		int2 targetNode;
+		targetNode.x1 = 1;
+		targetNode.y1 = j;
+		a1.sourceLoc = sourceNode;
+		a1.targetLoc = targetNode;
+
+		for (int i = 0; i < 100; i++)
+		{
+			a1.id = agentsCount;
+			agentList[agentsCount] = a1;
+			AgentRender agentRender;
+			agentRender.agentId = agentsCount;
+			agentRender.sourceLoc = sourceNode;
+			agentRender.currentInterpolationId = 0;
+			agentRender.pathCount = 0;
+			agentRender.status = 0;
+			agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
+			agentRender.randomFactor_X = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRender.randomFactor_Y = RandomFloat(randomFactor_Min, randomFactor_Max);
+			agentRenderList[agentsCount] = agentRender;
+			agentsCount = agentsCount + 1;
+		}
+		
 	}
 
 	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(Agent), NUM_AGENTS, &agentList, &m_Buffer_AgentList);
 	m_computeshader_helper->CreateBufferSRV(device, m_Buffer_AgentList, &m_BufAgentList_SRV);
-
-	
-
-
-
-
 
 	TextureUtility* m_TextureUtility = new TextureUtility;
 	m_WorldMap_SRV = m_TextureUtility->CreateRandomTexture2DSRV_New(device, deviceContext);//,deviceContext);
@@ -234,15 +332,6 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	UINT X = 2;
 	UINT Y = 2;
 	UINT Z = 1;
-
-	// Set the shader parameters that it will use for rendering.
-	//result = SetShaderParameters(deviceContext, texture);
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-
 
 	AStarParameters parameters;
 	parameters.MAP_DIMENSIONS = 8; // Like for 8x8 put 8 they are always semetric
@@ -420,6 +509,21 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 			agentRenderList[i].status = 2;
 		}
 	}
+
+	//agentRenderList[3200].agentId = 20;
+	//agentRenderList[3200].type = 1;
+
+	//agentRenderList[3201].agentId = 28;
+	//agentRenderList[3201].type = 1;
+
+	//agentRenderList[3202].agentId = 36;
+	//agentRenderList[3202].type = 1;
+
+	//agentRenderList[3203].agentId = 44;
+	//agentRenderList[3203].type = 1;
+
+	//agentRenderList[3204].agentId = 52;
+	//agentRenderList[3204].type = 1;
 
 	//////////////////////////////////////////////////////////////////////
 	// Copy the output from Pathfinding to buffers

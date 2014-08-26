@@ -9,33 +9,34 @@ cbuffer MatrixBuffer
 	matrix viewMatrix;
 	matrix projectionMatrix;
 	float4x4 gTexTransform;
+	
 };
-
 
 struct VertexOut
 {
 	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0;	
+	float2 tex : TEXCOORD0;
 };
 
 
 [maxvertexcount(36)]
 void main(
-	point float4 input[1] : SV_POSITION, 
-	inout TriangleStream< VertexOut > output
-)
+	point float4 input[1] : SV_POSITION,
+	inout TriangleStream< VertexOut > output)
 {
 		//http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab04.html
-		float scale = 0.2;
-		float halfscale = scale *0.5;
-		
+	
+	float scale = 0;
+	float halfscale= 0;
+	
+		scale = 0.2;
+		halfscale = scale *0.5;
+
 		
 		float4x4 WorldViewProj;
 		WorldViewProj = mul(viewMatrix, worldMatrix);
 		WorldViewProj = mul(WorldViewProj, projectionMatrix);
-	
 
-	
 		//////////////////////////////////////////////////////////////////////////
 		//Left 0
 		VertexOut element0;
@@ -46,7 +47,6 @@ void main(
 		element0.position = mul(element0.position, WorldViewProj);
 		element0.tex.x = 0.0f;
 		element0.tex.y = 0.0f;
-	
 
 		//Top-left 1
 		VertexOut element1;
@@ -58,7 +58,6 @@ void main(
 		element1.tex.x = 0.0f;
 		element1.tex.y = 1.0f;
 
-
 		// Top-Right 2
 		VertexOut element2;
 		element2.position.x = input[0].x + halfscale;
@@ -68,7 +67,6 @@ void main(
 		element2.position = mul(element2.position, WorldViewProj);
 		element2.tex.x = 1.0f;
 		element2.tex.y = 1.0f;
-		
 
 		// Vertex 3
 		VertexOut element3;
@@ -79,7 +77,6 @@ void main(
 		element3.position = mul(element3.position, WorldViewProj);
 		element3.tex.x = 1.0f;
 		element3.tex.y = 0.0f;
-
 		////////////////////////////////////////
 		// 4
 		VertexOut element4;
@@ -91,7 +88,6 @@ void main(
 		element4.tex.x = 0.0f;
 		element4.tex.y = 0.0f;
 
-
 		// 5
 		VertexOut element5;
 		element5.position.x = input[0].x - halfscale;
@@ -101,7 +97,6 @@ void main(
 		element5.position = mul(element5.position, WorldViewProj);
 		element5.tex.x = 0.0f;
 		element5.tex.y = 1.0f;
-
 
 		// 6
 		VertexOut element6;
@@ -113,7 +108,6 @@ void main(
 		element6.tex.x = 1.0f;
 		element6.tex.y = 1.0f;
 
-
 		// 7
 		VertexOut element7;
 		element7.position.x = input[0].x + halfscale;
@@ -123,7 +117,6 @@ void main(
 		element7.position = mul(element7.position, WorldViewProj);
 		element7.tex.x = 1.0f;
 		element7.tex.y = 0.0f;
-
 		////Front Face
 		output.Append(element0);
 		output.Append(element1);
@@ -141,8 +134,6 @@ void main(
 		output.Append(element6);
 		output.Append(element5);
 
-
-
 		output.Append(element4);
 		output.Append(element7);
 		output.Append(element6);
@@ -152,14 +143,14 @@ void main(
 		element4.tex.x = 0.0f;
 		element4.tex.y = 0.0f;
 		output.Append(element4);
+
 		element5.tex.x = 0.0f;
 		element5.tex.y = 1.0f;
 		output.Append(element5);
+
 		element1.tex.x = 1.0f;
 		element1.tex.y = 1.0f;
 		output.Append(element1);
-
-	
 
 		output.Append(element4);
 		output.Append(element1);

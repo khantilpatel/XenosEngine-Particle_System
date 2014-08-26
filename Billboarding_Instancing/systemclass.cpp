@@ -159,7 +159,7 @@ void SystemClass::Run()
 			done = true;
 		}
 		else
-		{
+		{ 
 			// Otherwise do the frame processing.
 			result = Frame();
 			if(!result)
@@ -262,7 +262,7 @@ bool SystemClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsSpaceBarPressed();
 	if (keyDown)
 	{
-
+		//m_Graphics->toggle_RestartPathFinding();
 	}
 	
 	return true;

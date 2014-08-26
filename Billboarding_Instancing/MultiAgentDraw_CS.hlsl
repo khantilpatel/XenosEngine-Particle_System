@@ -18,11 +18,20 @@ struct Agent
 	int status; // Agent Status: Stay at initial position 0, Move 1, No Path found 2;
 	float velocity;
 	float u; // Interpolation parameter
+	float randomFactor_X;
+	float randomFactor_Z;
+	//uint type; // Type: 0 Agent; 1 Collision box
 };
 struct Node{
 	uint x;
 	uint y;
 };
+
+//struct ComputeShaderOut
+//{
+//	float3 position;
+//	uint type; // Type: 0 Agent; 1 Collision box
+//};
 
 //Texture2D<float3> m_map : register(t0);
 StructuredBuffer<float3> g_GridCenterListInput : register(t0);
@@ -44,40 +53,40 @@ void main(uint3 DTid : SV_DispatchThreadID)
 	uint agent_Id = gridId;
 
 	Agent agent = agentList[agent_Id];
-	uint interpol_id = agent.currentInterpolationId; // + offset later Will Make it.
-	if (interpol_id < agent.pathCount)
-	{
-		if (interpol_id + 2 < agent.pathCount){
-			agentList[agent_Id].u = agentList[agent_Id].u + frameTime;
-		}
-		else
+	
+		uint interpol_id = agent.currentInterpolationId; // + offset later Will Make it.
+		if (interpol_id < agent.pathCount)
 		{
-			agentList[agent_Id].u = 1; 
-		}
-		if (agentList[agent_Id].u >= 1){
-			agentList[agent_Id].u = 0;
-			if (interpol_id + 2 < agent.pathCount){
-				interpol_id = interpol_id + 1;
-				agentList[agent_Id].currentInterpolationId = interpol_id;
-				
+			if (interpol_id + 1 < agent.pathCount){
+				agentList[agent_Id].u = agentList[agent_Id].u + frameTime;
 			}
-			
-		}
-		
-		float u = agentList[agent_Id].u;
-		// Get Grid Id for interpolation
-		uint interpol_A = pathList[offset + interpol_id];
-		uint interpol_B = pathList[offset + (interpol_id + 1)];
-		// Get 3d Coordinates to draw on floor
-		float3 coord_A = g_GridCenterListInput[interpol_A];
-		float3 coord_B = g_GridCenterListInput[interpol_B];
-		float acc = 0.5;
-		float x = coord_A.x + u * (coord_B.x - coord_A.x);
-		float z = coord_A.z + u * (coord_B.z - coord_A.z);
+			else
+			{
+				agentList[agent_Id].u = 1;
+			}
+			if (agentList[agent_Id].u >= 1){
+				agentList[agent_Id].u = 0;
+				if (interpol_id + 1 < agent.pathCount){
+					interpol_id = interpol_id + 1;
+					agentList[agent_Id].currentInterpolationId = interpol_id;
+				}
+			}
+			float u = agentList[agent_Id].u;
+			// Get Grid Id for interpolation
+			uint interpol_A = pathList[offset + interpol_id];
+			uint interpol_B = pathList[offset + (interpol_id + 1)];
+			// Get 3d Coordinates to draw on floor
+			float3 coord_A = g_GridCenterListInput[interpol_A];
+				float3 coord_B = g_GridCenterListInput[interpol_B];
+				float acc = 0.5;
+			float x = coord_A.x + u * (coord_B.x - coord_A.x);
+			float z = coord_A.z + u * (coord_B.z - coord_A.z);
 
-		bufferOut[agent_Id] = float3(x, coord_A.y, z);
-		//bufferOut[0] = g_GridCenterListInput[2];
-	}
+			bufferOut[agent_Id] = float3(x + agent.randomFactor_X, coord_A.y, z + agent.randomFactor_Z);
+			
+			//bufferOut[0] = g_GridCenterListInput[2];
+		}
+
 
 	//for (uint i = 0; i < 64; i++)
 	//{

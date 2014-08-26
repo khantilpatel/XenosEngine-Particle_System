@@ -123,6 +123,8 @@ public:
 		int status; // Agent Status: Stay at initial position 0, Move 1, No Path found 2;
 		float velocity;
 		float u;
+		float randomFactor_X;
+		float randomFactor_Y;
 	};
 
 	// Render Related Variables

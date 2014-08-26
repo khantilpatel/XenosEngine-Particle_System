@@ -80,3 +80,8 @@ XMVECTOR MathUtility::RandHemisphereUnitVec3(XMVECTOR n)
 		return XMVector3Normalize(v);
 	}
 }
+
+
+
+
+

@@ -47,6 +47,12 @@ class MultiAgentDrawClass
 		D3DXVECTOR2 texture;
 	};
 
+	struct ComputeShaderOut
+	{
+		XMFLOAT3 position;
+		int type; // Type: 0 Agent; 1 Collision box
+	};
+
 public:
 	MultiAgentDrawClass();
 	MultiAgentDrawClass(const MultiAgentDrawClass&);
@@ -109,6 +115,7 @@ private:
 	ID3D11ShaderResourceView* m_FloorTextureSRV;
 	ID3D11ShaderResourceView* m_CubeTextureSRV;
 	ID3D11ShaderResourceView* m_FloorCenterDataSRV;
+	ID3D11ShaderResourceView* m_CollisionWallSRV;
 	// Buffer data
 	ID3D11Buffer* mShapesVB;
 	ID3D11Buffer* mShapesIB;
