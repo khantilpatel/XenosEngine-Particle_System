@@ -86,8 +86,8 @@ bool SystemClass::Initialize()
 	}
 
 	// Set the initial position of the viewer to the same as the initial camera position.
-	m_Position->SetPosition(0.0f, 2.0f, -10.0f);
-
+	m_Position->SetPosition(0.0f, 2.0f, 10.0f);
+	m_Position->SetRotation(0.0f, 180, 0.0);
 	
 
 	return true;
@@ -177,7 +177,7 @@ void SystemClass::Run()
 bool SystemClass::Frame()
 {
 	bool result;
-		float posX, posY, posZ, rotX, rotY, rotZ;
+	float posX, posY, posZ, rotX, rotY, rotZ;
 		// Update the system stats.
 	m_Timer->Frame();
 

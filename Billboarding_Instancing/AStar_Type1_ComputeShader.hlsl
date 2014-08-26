@@ -512,7 +512,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupID)
 	}
 
 	SearchResult pathfindingResult;
-	pathfindingResult.agentId = loopCounter;//agent.id;//agent.id;
+	pathfindingResult.agentId = agent.id; //loopCounter;//
 	pathfindingResult.finalCost = currentNode.cost;//pqCurrentNode.y;
 	pathfindingResult.sourceGridId = sourceGridId;
 	pathfindingResult.finalGridId = m_GridId;

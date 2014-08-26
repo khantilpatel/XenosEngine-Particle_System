@@ -45,7 +45,7 @@ HRESULT ComputeShaderHelperClass::CreateStructuredBuffer(ID3D11Device* pDevice, 
 	desc.ByteWidth = uElementSize * uCount;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	desc.StructureByteStride = uElementSize;
-
+	
 	if (pInitData)
 	{
 		D3D11_SUBRESOURCE_DATA InitData;

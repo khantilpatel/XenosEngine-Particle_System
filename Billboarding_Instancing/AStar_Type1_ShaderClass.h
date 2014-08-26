@@ -24,6 +24,8 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 class AStar_Type1_ShaderClass
 {
+public:
+
 	static const int NUM_AGENTS = 4096;
 	static const int MAP_DIMENSIONS = 8;
 	static const int NUM_OPENLIST_COUNT = NUM_AGENTS * (MAP_DIMENSIONS * MAP_DIMENSIONS);
@@ -116,9 +118,22 @@ class AStar_Type1_ShaderClass
 	{
 		int agentId;
 		int pathCount;
+		int2 sourceLoc;
 		int currentInterpolationId;
+		int status; // Agent Status: Stay at initial position 0, Move 1, No Path found 2;
+		float velocity;
+		float u;
 	};
-public:
+
+	// Render Related Variables
+	int  *agentRenderPathList;
+	AgentRender agentRenderList[NUM_AGENTS];
+
+	ID3D11Buffer* m_Buffer_RenderAgentList;
+	ID3D11Buffer* m_Buffer_RenderAgentPathList;
+	ID3D11UnorderedAccessView*  m_BufRenderAgentList_URV;
+	ID3D11UnorderedAccessView*  m_BufRenderAgentPathList_URV;
+
 	AStar_Type1_ShaderClass();
 	AStar_Type1_ShaderClass(const AStar_Type1_ShaderClass&);
 	~AStar_Type1_ShaderClass();
@@ -128,6 +143,8 @@ public:
 	bool Render(ID3D11Device*, ID3D11DeviceContext*, int, int, ID3D11Buffer*, ID3D11ShaderResourceView*);
 
 	static CONST int NUM_ELEMENTS = 9;
+
+
 
 private:
 	bool InitializeShader(ID3D11Device*, ID3D11DeviceContext*, HWND, WCHAR*);

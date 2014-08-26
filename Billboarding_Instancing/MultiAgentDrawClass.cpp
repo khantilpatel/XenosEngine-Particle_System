@@ -46,13 +46,15 @@ bool MultiAgentDrawClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* 
 	
 	InitVertextBuffers(device, device_context);
 
-	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), (8 * 8), nullptr,  &m_AgentPositionBuffer);
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(XMFLOAT3), 4096, nullptr,  &m_AgentPositionBuffer);
 
-	m_computeshader_helper->CreateVertexBuffer(device, sizeof(XMFLOAT3), (8 * 8), nullptr, &m_AgentPositionDrawBuffer);
+	m_computeshader_helper->CreateVertexBuffer(device, sizeof(XMFLOAT3), 4096, nullptr, &m_AgentPositionDrawBuffer);
 
 	m_computeshader_helper->CreateBufferUAV(device, m_AgentPositionBuffer, &m_AgentPosition_URV);
 	// Load Texture for Floor and other stuff
 	m_FloorTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/edited_floor.dds");
+
+	m_CubeTextureSRV = m_ShaderUtility->CreateTextureFromFile(device, L"Textures/cube.jpg");
 
 	return true;
 }
@@ -367,11 +369,19 @@ bool MultiAgentDrawClass::InitFloorGeometryVertextBuffers(ID3D11Device* device, 
 }
 
 bool MultiAgentDrawClass::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
-	float frameTime, float gameTime, XMFLOAT3 camEyePos)
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,	float frameTime, float gameTime, XMFLOAT3 camEyePos,
+	ID3D11UnorderedAccessView*  m_BufRenderAgentList_URV, ID3D11UnorderedAccessView*  m_BufRenderAgentPathList_URV)
 {
-	RenderComputeShader(device, deviceContext,  worldMatrix,
-		 viewMatrix,  projectionMatrix, camEyePos);
+	cout << "FireParticle:" << frameTime << "||" << gameTime << "||\n";
+	D3DXMATRIX worldMatrix1 = *(new D3DXMATRIX);
+
+	D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
+	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+
+	SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix, frameTime);
+	RenderComputeShader(device, deviceContext,  worldMatrix,viewMatrix, projectionMatrix,
+		camEyePos, m_BufRenderAgentList_URV, m_BufRenderAgentPathList_URV);
 
 	RenderMultipleAgentShader(device, deviceContext, worldMatrix,
 		viewMatrix, projectionMatrix, camEyePos);
@@ -386,21 +396,24 @@ bool MultiAgentDrawClass::Render(ID3D11Device* device, ID3D11DeviceContext* devi
 
 
 void MultiAgentDrawClass::RenderComputeShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
-	XMFLOAT3 camEyePos)
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,	XMFLOAT3 camEyePos,
+	ID3D11UnorderedAccessView*  m_BufRenderAgentList_URV, ID3D11UnorderedAccessView*  m_BufRenderAgentPathList_URV)
 {
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// Dispatch ComputeShader
+
+	
+
 	ID3D11ShaderResourceView* aRViews[1] = { m_FloorCenterDataSRV };
 
-	ID3D11UnorderedAccessView* aURViews[1] = { m_AgentPosition_URV };
+	ID3D11UnorderedAccessView* aURViews[3] = { m_AgentPosition_URV, m_BufRenderAgentList_URV, m_BufRenderAgentPathList_URV };
 	// Now render the prepared buffers with the shader.
 	//deviceContext->CSSetConstantBuffers(0, 1, &m_BufConstantParameters);
 	deviceContext->CSSetShaderResources(0, 1, aRViews);
-	deviceContext->CSSetUnorderedAccessViews(0, 1, aURViews, nullptr);
+	deviceContext->CSSetUnorderedAccessViews(0, 3, aURViews, nullptr);
 	deviceContext->CSSetShader(m_computeShader, nullptr, 0);
 
-	deviceContext->Dispatch(1, 1, 1);
+	deviceContext->Dispatch(2, 2, 1);
 
 	deviceContext->CSSetShader(nullptr, nullptr, 0);
 
@@ -438,10 +451,11 @@ void MultiAgentDrawClass::RenderComputeShader(ID3D11Device* device, ID3D11Device
 
 	//debugbuf2->Release();
 	//debugbuf2 = 0;
+
+
 }
 void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
-	XMFLOAT3 camEyePos)
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,	XMFLOAT3 camEyePos)
 {
 	bool result;
 
@@ -456,13 +470,13 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 
 	//	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
 
-	D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
+	/*D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
 	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);*/
 
 
 
-	SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
+	//SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
 
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
@@ -494,15 +508,12 @@ void MultiAgentDrawClass::RenderMultipleAgentShader(ID3D11Device* device, ID3D11
 	ID3D11Buffer* bufferArray[1] = { 0 };
 
 	deviceContext->SOSetTargets(1, bufferArray, 0);
-
+	deviceContext->PSSetShaderResources(0, 1, &m_CubeTextureSRV);
 	deviceContext->PSSetShader(m_render_pixelShader, NULL, 0);
 	// Set the sampler state in the pixel shader.
 	//deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 	////////////////////////////////////////////////////////////////////////////////////
-
-
-	deviceContext->Draw(64, 0);
-
+	deviceContext->Draw(4096, 0);
 
 	deviceContext->GSSetConstantBuffers(0, 1, bufferArray);
 	deviceContext->GSSetShader(NULL, NULL, 0);
@@ -527,19 +538,19 @@ void MultiAgentDrawClass::RenderShader(ID3D11Device* device, ID3D11DeviceContext
 
 	//	D3DXMatrixMultiply(ViewProj, &viewMatrix, &projectionMatrix);
 
-	D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+	//D3DXMatrixTranspose(&worldMatrix1, &worldMatrix);
+	//D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	//D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
 
 
 
-	SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
+	//SetShaderParameters(deviceContext, worldMatrix1, viewMatrix, projectionMatrix);
 
 	UINT stride = sizeof(Basic32);
 	UINT offset = 0;
 
 
-
+	deviceContext->PSSetShaderResources(0, 1, &m_FloorTextureSRV);
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	deviceContext->IASetVertexBuffers(0, 1, &mShapesVB, &stride, &offset);
@@ -565,7 +576,7 @@ void MultiAgentDrawClass::RenderShader(ID3D11Device* device, ID3D11DeviceContext
 }
 
 bool MultiAgentDrawClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, float frameTime)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -586,17 +597,18 @@ bool MultiAgentDrawClass::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
 	dataPtr->gridScaling = XMMatrixScaling(8.0f, 8.0f, 1.0f); //TODO: Transform Floor
-	
+	dataPtr->frameTime = frameTime;
 	//cout<< "CamPos||X:" <<camEyePos.x << "||Y:"<<camEyePos.y <<"||Z:"<<camEyePos.z<<"||\n";
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_world_matrix_buffer, 0);
 	///////////////////////////////////////////////////////////////
 	// Geometry Shader Constant Resources Set HERE
 	deviceContext->VSSetConstantBuffers(0, 1, &m_world_matrix_buffer);
+	deviceContext->CSSetConstantBuffers(0, 1, &m_world_matrix_buffer);
 	//deviceContext->PSSetShaderResources(0, 1, &m_CubeMapSRV);
 	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 	/////////////////////////////////////////////////////////////////
-	deviceContext->PSSetShaderResources(0, 1, &m_FloorTextureSRV);
+	
 	return true;
 }
 

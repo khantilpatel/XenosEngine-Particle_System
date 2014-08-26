@@ -9,6 +9,7 @@ cbuffer MatrixBuffer
 	matrix viewMatrix;
 	matrix projectionMatrix;
 	float4x4 gTexTransform;
+	float frameTime;
 };
 
 

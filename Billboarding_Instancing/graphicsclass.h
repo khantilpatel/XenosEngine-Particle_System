@@ -48,6 +48,7 @@ public:
 	float m_frameTime;
 	float m_TotalTime;
 	bool toggle_WireFrame_Mode;
+	bool executeOnceAStar_Type1;
 private:
 	bool Render();
 

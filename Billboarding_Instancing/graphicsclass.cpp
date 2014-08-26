@@ -25,6 +25,7 @@ GraphicsClass::GraphicsClass()
 
 	m_MultiAgentDrawClass = 0;
 	toggle_WireFrame_Mode = false;
+	executeOnceAStar_Type1 = true;
 
 }
 
@@ -94,8 +95,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 	// Set the initial position of the camera.
-	//m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
-	
+	//	
 	// Create the model object.
 	m_Model = new ModelClass;
 	if(!m_Model)
@@ -193,8 +193,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		MessageBox(hwnd, L"Could not initialize the m_RainParticleSystem  object", L"Error", MB_OK);
 		return false;
 	}
-			// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f,-8.0f,-10.0f);// -2.0f, -10.0f);
 
 	m_AStar_Type1_ShaderClass = new AStar_Type1_ShaderClass;
 	result = m_AStar_Type1_ShaderClass->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd);
@@ -287,15 +285,17 @@ bool GraphicsClass::Render()
 	///////////////////////////////////////////////////////////////////
 	// RENDER SKYBOX
 	/////////////////////////////////////////////////////////////////////
-	/*m_D3D->SetDepthStencilState_Less_Equal();
+	m_D3D->SetDepthStencilState_Less_Equal();
 	m_D3D->SetRasterState_Nocull();
+
 	m_skyBox->RenderShader(m_D3D->GetDeviceContext(),	worldMatrix, viewMatrix, 
 	projectionMatrix, m_Camera->GetPosition_XM());
+
 	m_D3D->EnableDepthStencilState();
-	m_D3D->SetRasterState_Default();*/
+	m_D3D->SetRasterState_Default();
 	/////////////////////////////////////////////////////////////////////
-	m_MultiAgentDrawClass->Render(m_D3D->GetDevice(),m_D3D->GetDeviceContext(), worldMatrix, viewMatrix,
-		projectionMatrix, m_frameTime / 1000, m_TotalTime / 1000, m_Camera->GetPosition_XM());
+
+
 	///////////////////////////////////////////////////////////////////
 	// RENDER FIRE PARTICLES
 	/////////////////////////////////////////////////////////////////////
@@ -323,9 +323,80 @@ bool GraphicsClass::Render()
 	/////////////////////////////////////////////////////////////////////
 	// AI A*- Type-1 RENDERING
 	/////////////////////////////////////////////////////////////////////
-	//m_AStar_Type1_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
+	
+
+	 if (executeOnceAStar_Type1){
+		 m_AStar_Type1_ShaderClass->Render(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), 0, 0, NULL, NULL);
+		 executeOnceAStar_Type1 = false;
+	 }
+
+	int  *agentRenderPathList;
+	AStar_Type1_ShaderClass::AgentRender *agentRenderList;
+	agentRenderList = m_AStar_Type1_ShaderClass->agentRenderList;
+	agentRenderPathList = m_AStar_Type1_ShaderClass->agentRenderPathList;
+
 	/////////////////////////////////////////////////////////////////////
 
+	///////////////////////////////////////////////////////////////////
+	// RENDER Multi Agent Display
+	/////////////////////////////////////////////////////////////////////
+	m_MultiAgentDrawClass->Render(m_D3D->GetDevice(),m_D3D->GetDeviceContext(), worldMatrix, viewMatrix,
+	projectionMatrix, m_frameTime / 1000, m_TotalTime / 1000, m_Camera->GetPosition_XM(),
+	m_AStar_Type1_ShaderClass->m_BufRenderAgentList_URV, m_AStar_Type1_ShaderClass->m_BufRenderAgentPathList_URV);
+
+		///////////////////////////////////////////////////////////////////////////////
+		// Debug Agent List Data
+		//ComputeShaderHelperClass* m_computeshader_helper = new ComputeShaderHelperClass;
+		//ID3D11Buffer* debugbuf0 = m_computeshader_helper->CreateAndCopyToDebugBuf(m_D3D->GetDevice(), m_D3D->GetDeviceContext(),
+		//	m_AStar_Type1_ShaderClass->m_Buffer_RenderAgentList);
+		//D3D11_MAPPED_SUBRESOURCE MappedResource1;
+		//AStar_Type1_ShaderClass::AgentRender  *agentListCheck;
+		//m_D3D->GetDeviceContext()->Map(debugbuf0, 0, D3D11_MAP_READ, 0, &MappedResource1);
+
+		//// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
+		//// This is also a common trick to debug CS programs.
+		//agentListCheck = (AStar_Type1_ShaderClass::AgentRender*)MappedResource1.pData;
+
+		//cout << " Render Agent List check:\n";
+		//const int count = 4096;
+		//AStar_Type1_ShaderClass::AgentRender nodes2[count];
+		//for (int i = 2001; i < count; i++)
+		//{
+		//	nodes2[i] = agentListCheck[i];
+		//	cout <<  "\nAgentId=" << agentListCheck[i].agentId << ":Counter= " << agentListCheck[i].currentInterpolationId
+		//		<< " frameTime:"<< agentListCheck[i].u;
+		//}
+		//m_D3D->GetDeviceContext()->Unmap(debugbuf0, 0);
+
+		//debugbuf0->Release();
+		//debugbuf0 = 0;
+		////////////////////////////////////////////////////////////////////////////
+
+		/////////////////////////////////////////////////////////////////////////////////
+		//// Debug PathList Data
+		//ID3D11Buffer* debugbuf1 = m_computeshader_helper->CreateAndCopyToDebugBuf(m_D3D->GetDevice(), m_D3D->GetDeviceContext(),
+		//	m_AStar_Type1_ShaderClass->m_Buffer_RenderAgentPathList);
+		//D3D11_MAPPED_SUBRESOURCE MappedResource2;
+		//int  *pathListCheck;
+		//m_D3D->GetDeviceContext()->Map(debugbuf1, 0, D3D11_MAP_READ, 0, &MappedResource2);
+
+		//// Set a break point here and put down the expression "p, 1024" in your watch window to see what has been written out by our CS
+		//// This is also a common trick to debug CS programs.
+		//pathListCheck = (int*)MappedResource2.pData;
+
+		//cout << " Render Agent List check:\n";
+
+		//int nodes1[2000];
+		//for (int i = 0; i < 2000; i++)
+		//{
+		//	nodes1[i] = pathListCheck[i];
+		//	cout <<"\n"<< i << ". Node =" << pathListCheck[i];
+		//}
+		//m_D3D->GetDeviceContext()->Unmap(debugbuf1, 0);
+
+		//debugbuf1->Release();
+		//debugbuf1 = 0;
+		//////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////
 	// AI A*- Type-2 RENDERING
 	/////////////////////////////////////////////////////////////////////

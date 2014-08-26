@@ -30,7 +30,8 @@ class MultiAgentDrawClass
 		D3DXMATRIX world;
 		D3DXMATRIX view;
 		D3DXMATRIX projection;
-		XMMATRIX gridScaling;		
+		XMMATRIX gridScaling;
+		float frameTime;
 	};
 
 	struct Basic32
@@ -56,21 +57,24 @@ public:
 
 	bool Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
-		float frameTime, float gameTime, XMFLOAT3 camEyePos);
+		float frameTime, float gameTime, XMFLOAT3 camEyePos,
+		ID3D11UnorderedAccessView*, ID3D11UnorderedAccessView*);
 
 
 	void RenderShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 		XMFLOAT3 camEyePos);
 
-	void RenderComputeShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
-		XMFLOAT3 camEyePos);
-	
-
 	void RenderMultipleAgentShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 		XMFLOAT3 camEyePos);
+
+	void RenderComputeShader(ID3D11Device* device, ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+		XMFLOAT3 camEyePos, ID3D11UnorderedAccessView*, ID3D11UnorderedAccessView*);
+	
+
+
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND);
@@ -85,7 +89,7 @@ private:
 
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix);
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, float frameTime);
 
 	ID3D11VertexShader* m_vertexShader;
 	ID3D11PixelShader* m_pixelShader;
@@ -103,6 +107,7 @@ private:
 	// Texture Resource
 	ID3D11SamplerState* m_sampleState;
 	ID3D11ShaderResourceView* m_FloorTextureSRV;
+	ID3D11ShaderResourceView* m_CubeTextureSRV;
 	ID3D11ShaderResourceView* m_FloorCenterDataSRV;
 	// Buffer data
 	ID3D11Buffer* mShapesVB;

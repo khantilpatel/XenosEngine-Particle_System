@@ -17,6 +17,10 @@ AStar_Type1_ShaderClass::AStar_Type1_ShaderClass()
 	m_Buffer_OpenList = 0;
 	m_Buffer_GridNodeListOut = 0;
 
+	m_Buffer_RenderAgentPathList = 0;
+	m_Buffer_RenderAgentList = 0;
+
+
 	m_BufAgentList_SRV = 0;
 	m_BufSearchResult_URV = 0;
 	m_BufGridNodeListOut_URV = 0;
@@ -154,27 +158,41 @@ bool AStar_Type1_ShaderClass::createConstantBuffer(ID3D11Device* device, ID3D11D
 
 	Agent a1;
 
-	int2 i;
-	i.x1 = 0;
-	i.y1 = 4;
+	int2 sourceNode;
+	sourceNode.x1 = 0;
+	sourceNode.y1 = 4;
 
-	int2 i1;
-	i1.x1 = 6;
-	i1.y1 = 4;
+	int2 targetNode;
+	targetNode.x1 = 6;
+	targetNode.y1 = 4;
 
 
-	a1.sourceLoc = i;
-	a1.targetLoc = i1;
+	a1.sourceLoc = sourceNode;
+	a1.targetLoc = targetNode;
 
 
 	for (int i = 0; i < NUM_AGENTS; i++)
 	{
 		a1.id = i;
 		agentList[i] = a1;
+		AgentRender agentRender;
+		agentRender.agentId = i;
+		agentRender.sourceLoc = sourceNode;
+		agentRender.currentInterpolationId = 0;
+		agentRender.pathCount = 0;
+		agentRender.status = 0;
+		agentRender.velocity = 0; // generate random value for velocity TODO: find the random value range
+		agentRenderList[i] = agentRender;
 	}
 
 	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(Agent), NUM_AGENTS, &agentList, &m_Buffer_AgentList);
 	m_computeshader_helper->CreateBufferSRV(device, m_Buffer_AgentList, &m_BufAgentList_SRV);
+
+	
+
+
+
+
 
 	TextureUtility* m_TextureUtility = new TextureUtility;
 	m_WorldMap_SRV = m_TextureUtility->CreateRandomTexture2DSRV_New(device, deviceContext);//,deviceContext);
@@ -348,16 +366,16 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 	//////////////////////////////////////////////////////////////////
 	// Extract the result of A* search from GPU
 
-	int  *pathList;
-	pathList = new (nothrow)int[NUM_OPENLIST_COUNT];          //size must be of type int 
 
-	if (pathList == nullptr)
+	agentRenderPathList = new (nothrow)int[NUM_OPENLIST_COUNT];          //size must be of type int 
+
+	if (agentRenderPathList == nullptr)
 	{
 		std::cout << "Error: memory could not be allocated";
 	}
 
 	SearchResult pathfindingResult;
-	AgentRender agentRenderList[NUM_AGENTS];
+
 	for (int i = 0; i < NUM_AGENTS; i++)
 	{
 		pathfindingResult = p3[i];
@@ -369,35 +387,54 @@ bool AStar_Type1_ShaderClass::Render(ID3D11Device* device, ID3D11DeviceContext* 
 			int offset = i * (MAP_DIMENSIONS * MAP_DIMENSIONS);
 			int pathArray[64];
 			int counter = 0;
-			pathArray[counter] = currentGridId;
-			pathList[offset + counter] = currentGridId;
+			//pathArray[counter] = currentGridId;
+			//agentRenderPathList[offset + counter] = currentGridId;
 			pathVector.push_back(currentGridId);
-			counter++;
+			
 
 			while (sourceGridId != currentGridId){
-			 int  parentId = gridNodeListGPU[offset + currentGridId].parentId;
-			 //pathArray[counter] = parentId;
-			 pathVector.push_back(parentId);			
-			 currentGridId = parentId;
-			 counter++;			  
+			 int  currentParentId = gridNodeListGPU[offset + currentGridId].parentId;
+			// pathArray[counter] = currentParentId;
+			 counter++;
+			 pathVector.push_back(currentParentId);
+			 currentGridId = currentParentId;
+			 	  
 			}	
-			int counter1 = 0;
+			counter = 0;
+			//int counter1 = 0;
+			// Copy the Vector to array list
 			while (!pathVector.empty()){
-				pathArray[counter1] = pathVector.back();
-				pathList[offset + counter] = pathVector.back();		
+				pathArray[counter] = pathVector.back();
+				agentRenderPathList[offset + counter] = pathVector.back();
 				pathVector.pop_back();
-				counter1++;
+				counter++;
 			}
 
-			AgentRender agent;
-			agent.agentId = pathfindingResult.agentId;
-			agent.pathCount = counter; 
-			agentRenderList[i] = agent;
+			//AgentRender agent;
+			agentRenderList[i].agentId = pathfindingResult.agentId;
+			agentRenderList[i].pathCount = counter;
+			agentRenderList[i].status = 1;
+		}
+		else
+		{
+			agentRenderList[i].status = 2;
 		}
 	}
 
+	//////////////////////////////////////////////////////////////////////
+	// Copy the output from Pathfinding to buffers
+	//////////////////////////////////////////////////////////////////////
+	// 1. m_Buffer_RenderAgentList
 
-	delete[] pathList;
+	// SRV for RenderPathList which will be populated AStar and Consummed by the Compute Shader
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(AgentRender), NUM_AGENTS, &agentRenderList, &m_Buffer_RenderAgentList);
+	m_computeshader_helper->CreateBufferUAV(device, m_Buffer_RenderAgentList, &m_BufRenderAgentList_URV);
+
+	// SRV for RenderPathList which will be populated AStar and Consummed by the Compute Shader
+	m_computeshader_helper->CreateStructuredBuffer(device, sizeof(int), NUM_OPENLIST_COUNT, agentRenderPathList, &m_Buffer_RenderAgentPathList);
+	m_computeshader_helper->CreateBufferUAV(device, m_Buffer_RenderAgentPathList, &m_BufRenderAgentPathList_URV);
+
+	//delete[] pathList;
 
 
 	return true;
